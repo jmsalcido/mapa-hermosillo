@@ -1,8 +1,10 @@
-import { shieldSVG } from '../art/heraldry'
+import { crestSVG } from '../art/heraldry'
+import { atlasGloss, realmLabel } from '../atlasNames'
+import type { Skin } from '../skin'
 import { Portrait } from '../art/Portrait'
 import type { Ageb, CoreData, Realm } from '../data'
 import { describe } from '../describe'
-import { fmt, shortName, t } from '../i18n'
+import { fmt, t } from '../i18n'
 import { GRS_RAMP, IMU_RAMP } from '../modes'
 import { critterSVG, GROUP_INFO, GROUPS } from '../art/critters'
 import { WEALTH_PLAIN } from './Legend'
@@ -31,13 +33,14 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 /** Ficha del barrio: a wanted-poster-style sheet for one AGEB. */
-export function ProvincePanel({ data, ageb: a, realm: r, onClose }: { data: CoreData; ageb: Ageb; realm: Realm; onClose: () => void }) {
+export function ProvincePanel({ data, ageb: a, realm: r, skin, onClose }: { data: CoreData; ageb: Ageb; realm: Realm; skin: Skin; onClose: () => void }) {
   const b = data.stats.breaks.dens
   const rank = a.dens == null ? null : Math.min(1, b.filter(x => a.dens! >= x).length / b.length)
   const pct = (x: number | null, of: number | null) => (x != null && of ? (100 * x) / of : null)
   const src = data.manifest.sources
-  const name = shortName(r.name)
-  const zone = name ?? r.title
+  const atlas = skin === 'atlas'
+  const L = realmLabel(r, atlas)
+  const zone = L.zone
   const lsts = data.agebs.features.map(f => (f.properties as Ageb).lst).filter((x): x is number => x != null)
   const heatRank = a.lst == null || !lsts.length ? null : Math.round((100 * lsts.filter(x => x < a.lst!).length) / lsts.length)
   const top = (a.w_top ?? '').split('|').filter(Boolean).map(x => x.split(':'))
@@ -46,17 +49,17 @@ export function ProvincePanel({ data, ageb: a, realm: r, onClose }: { data: Core
     <aside className="panel card" aria-label={`Barrio en ${zone}`}>
       <div className="sheet-grip" aria-hidden="true" />
       <header className="panel-head" style={{ ['--realm' as string]: r.color }}>
-        <span className="panel-shield" dangerouslySetInnerHTML={{ __html: shieldSVG(r.color, r.charge, 44) }} />
+        <span className="panel-shield" dangerouslySetInnerHTML={{ __html: crestSVG(skin, r.color, r.charge, 44) }} />
         <div className="panel-titles">
           <h2>Barrio en {zone}</h2>
-          <p>{name ? `${r.title} · ` : ''}barrio n.º {a.ageb}</p>
+          <p>{atlas ? <><span className="rune">{L.name}</span>, {atlasGloss(r.title)} · </> : L.sub ? `${L.sub} · ` : ''}barrio n.º {a.ageb}</p>
         </div>
         <button className="close" onClick={onClose} aria-label={t('close')}>✕</button>
       </header>
 
       <div className="panel-body">
         <figure className="portrait-frame">
-          <Portrait seed={a.cvegeo} densityRank={rank} color={r.color} />
+          <Portrait seed={a.cvegeo} densityRank={rank} color={r.color} skin={skin} />
           <figcaption>{t('portrait_note')}</figcaption>
         </figure>
 

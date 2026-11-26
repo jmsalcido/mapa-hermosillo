@@ -15,6 +15,7 @@ Spatial unit: INEGI **AGEB urbana** (key `CVEGEO`, 13 characters). Sonora = `26`
 | Base: blocks | Marco Geoestadístico, manzanas (`…/mza/26/030`) | INEGI | Dec 2025 | Yearly | INEGI Términos de libre uso | **Built** (loaded lazily at zoom ≥ 13.4) |
 | Base: streets | Marco Geoestadístico, vialidades (`…/vialidades/26/030`) | INEGI | Dec 2025 | Yearly | INEGI Términos de libre uso | **Built** (major roads up front, minor roads lazy) |
 | Base: landmarks, water, river, parks, neighbourhood names | OpenStreetMap via Overpass API (bbox 28.90–29.25 N, −111.15 to −110.85) | OSM contributors | live | Weekly | ODbL 1.0 | **Built** |
+| Base: sea (Gulf of California) | Natural Earth 1:10m ocean polygons (`ne_10m_ocean.geojson`), clipped to −113.2…−109.7, 27.8…30.2 | Natural Earth | v5.1 | Static (cached a year) | Public domain | **Built**. Shoreline is approximate up close (1:10 M scale); drawn under the barrios |
 | Base: hillshade | AWS Terrain Tiles (Terrarium; SRTM, ETOPO1, USGS NED) | Mapzen / AWS Open Data | static | — | Attribution | **Live tiles** (fetched by the browser) |
 | Territorios | k-means of population-weighted AGEB centroids | derived | — | Per run | CC-BY 4.0 (derived) | **Built — a visual grouping, not official districts** |
 | People | Censo de Población y Vivienda 2020, AGEB y manzana urbana (CSV) | INEGI | 2020 | Decennial (next: 2030) | INEGI Términos de libre uso | **Built** |

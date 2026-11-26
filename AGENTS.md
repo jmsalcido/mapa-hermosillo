@@ -19,12 +19,28 @@ Live: https://hermosillo-mapa-vivo.vinc-fdb.workers.dev
 5. **Look: Norteño western** — leather, stitching, conchos, brass rivets, sarape stripe, cattle-brand (fierro)
    heraldry; fonts Rye / Zilla Slab / Alegreya. Inspired by that aesthetic; never copy any game's or artist's
    art, names, logos or likeness.
+   **Skins**: Norteño is the default; "Atlas antiguo" (`?skin=atlas`, HUD toggle, saved in localStorage
+   `hlm-estilo`) is an old hand-inked fantasy-atlas look (aged vellum, parchment panels inked in black and red,
+   wax seals, crowned heater shields with ribbon names, compass rose, ripple lines along the sea; fonts Cinzel Decorative / IM Fell English / Uncial Antiqua). It is inspired by classic fantasy
+   cartography in general: never use Tolkien's (or any book's or game's) names, languages, scripts or artwork.
+   Its realm names are invented in `src/atlasNames.ts` (checked against a deny-list) and always shown with a
+   Spanish gloss and the real place name. Skins change only looks and flavour words, never data or data ramps.
 6. **Colour-blind-safe palettes**: single-hue ramps with monotonic lightness, or blue↔orange diverging. Point
    symbols differ by silhouette, not only colour.
 7. **Privacy**: no phones, e-mails, addresses of businesses; iNaturalist obscured observations are never placed;
    only openly licensed (CC0 / CC-BY*) observations are kept and credited.
 8. **Percentages must be 0–100.** Use the denominator INEGI defines for each numerator (see `DATA.md →
    Census percentages`). `people.check_ratios` aborts the run otherwise — don't weaken it.
+9. **This is a free project — keep it at $0.** Before adding any service, API, dataset, font, library or
+   hosting feature that needs a paid plan, a commercial licence, a credit card or a restrictive licence, look
+   for a free / open alternative first (open data, open-source library, free tier). Only if none exists, stop
+   and ask the owner before adding it; never sign up for or enable anything paid on your own.
+   Today everything is free: public GitHub repo (unlimited Actions minutes, 10 GB cache), Cloudflare Workers
+   static assets on the free plan (static requests are free and unlimited; 25 MiB per file, 20,000 files),
+   open data sources (INEGI, CONAPO, CONEVAL, OSM, iNaturalist, NASA POWER, Landsat, Sentinel-2, ESA
+   WorldCover via the free Microsoft Planetary Computer), AWS Terrain Tiles, Google Fonts, GTM / GA4 standard.
+   Things that would break this: making the repo private (Actions minutes become limited), Worker code that
+   runs on every request (counts against the free daily limit), files over 25 MiB, paid map tiles or APIs.
 
 ## Commands
 
@@ -54,6 +70,7 @@ pipeline/hlm/      Python pipeline (uv project in pipeline/)
   people.py        Censo 2020 (AGEB + manzana), ratios, check_ratios()
   wealth.py        CONAPO IMU 2020, CONEVAL GRS 2020 (5 grades each)
   osm.py           Overpass: landmarks, water, parks, neighbourhood names
+  coast.py         sea: Natural Earth 1:10m ocean clipped to the map area
   realms.py        "territorios": k-means grouping, Norteño titles, colours, fierros (derived, not official)
   wildlife.py      Fauna — iNaturalist
   heat.py          Calor — Landsat summer LST composite + NASA POWER daily max
@@ -70,6 +87,8 @@ src/
   i18n.ts          Spanish strings and number/date formatting (es-MX)
   describe.ts      plain-language one-line description of a barrio
   analytics.ts     dataLayer events for Google Tag Manager
+  skin.ts          skin state (norteno | atlas): ?skin=, localStorage, <html data-skin>
+  atlasNames.ts    invented realm names + Spanish glosses for the Atlas skin
   map/             MapView (layers, lazy loading, crossfade, interaction), base style
   art/             SVG art: heraldry, landmark tokens, critters, trees, business icons, portrait
   ui/              Ledger (HUD), ModeBar, Legend, Tooltip, ProvincePanel (ficha), Chronicle, cards, Welcome
@@ -119,7 +138,7 @@ Repo secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, optional `PC_SDK_
 ## Analytics
 
 Google Tag Manager `GTM-M9MFZ7RP` in `index.html` (skipped on localhost) → GA4. Custom dataLayer events:
-`cambio_modo`, `abrir_barrio`, `ver_ficha_punto` (see `src/analytics.ts`).
+`cambio_modo`, `abrir_barrio`, `ver_ficha_punto`, `cambio_estilo` (see `src/analytics.ts`).
 
 ## Commits
 

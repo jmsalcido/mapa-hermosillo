@@ -7,8 +7,15 @@ function rng(seed: string) {
   return () => ((h = Math.imul(h ^ (h >>> 15), 2246822507)), ((h >>> 0) % 10000) / 10000)
 }
 
-export function Portrait({ seed, densityRank, color }: { seed: string; densityRank: number | null; color: string }) {
+const PAL = {
+  norteno: { sky0: '#f2c27b', sky1: '#f8e6c2', sun: '#fff3cf', hills: '#c99e6c', ground: '#d9b886', roof: '#a35a3c' },
+  // ink-wash landscape on vellum
+  atlas: { sky0: '#d9d2b8', sky1: '#f3ecd6', sun: '#fbf6e6', hills: '#7f7a5e', ground: '#c9bd98', roof: '#4d3f2e' },
+}
+
+export function Portrait({ seed, densityRank, color, skin = 'norteno' }: { seed: string; densityRank: number | null; color: string; skin?: 'norteno' | 'atlas' }) {
   const r = rng(seed)
+  const P = PAL[skin]
   const n = densityRank == null ? 0 : 2 + Math.round(densityRank * 12) // 0..1 → 2..14 houses
   const houses = Array.from({ length: n }, (_, i) => {
     const w = 14 + r() * 10
@@ -19,23 +26,23 @@ export function Portrait({ seed, densityRank, color }: { seed: string; densityRa
   }).sort((a, b) => a.y - b.y)
   const hills = `M0 70 C 30 ${48 + r() * 8}, 50 ${52 + r() * 8}, 80 62 S 130 ${44 + r() * 10}, 170 60 L170 110 L0 110Z`
   return (
-    <svg viewBox="0 0 170 110" className="portrait" role="img" aria-label="">
+    <svg viewBox="0 0 170 110" className={`portrait portrait-${skin}`} role="img" aria-label="">
       <defs>
-        <linearGradient id={`sky${seed}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#f2c27b" />
-          <stop offset="1" stopColor="#f8e6c2" />
+        <linearGradient id={`sky${skin}${seed}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={P.sky0} />
+          <stop offset="1" stopColor={P.sky1} />
         </linearGradient>
       </defs>
-      <rect width="170" height="110" fill={`url(#sky${seed})`} />
-      <circle cx={120 + r() * 30} cy={24} r={11} fill="#fff3cf" opacity=".9" />
-      <path d={hills} fill="#c99e6c" opacity=".7" />
-      <path d="M0 84 C 40 76, 90 80, 170 74 L170 110 L0 110Z" fill="#d9b886" />
+      <rect width="170" height="110" fill={`url(#sky${skin}${seed})`} />
+      <circle cx={120 + r() * 30} cy={24} r={11} fill={P.sun} opacity=".9" />
+      <path d={hills} fill={P.hills} opacity=".7" />
+      <path d="M0 84 C 40 76, 90 80, 170 74 L170 110 L0 110Z" fill={P.ground} />
       {houses.map((h, i) => (
         <g key={i} transform={`translate(${h.x} ${h.y})`}>
           <rect x={0} y={-h.h} width={h.w} height={h.h} fill={color} opacity={h.shade} stroke="#2a1d12" strokeWidth="1" />
           <rect x={0} y={-h.h} width={h.w} height={h.h} fill="#fff" opacity=".35" />
           {h.roof ? (
-            <path d={`M-1 ${-h.h} L${h.w / 2} ${-h.h - 6} L${h.w + 1} ${-h.h}Z`} fill="#a35a3c" stroke="#2a1d12" strokeWidth="1" />
+            <path d={`M-1 ${-h.h} L${h.w / 2} ${-h.h - 6} L${h.w + 1} ${-h.h}Z`} fill={P.roof} stroke="#2a1d12" strokeWidth="1" />
           ) : (
             <rect x={-1} y={-h.h - 2} width={h.w + 2} height={2.5} fill="#e9dcc0" stroke="#2a1d12" strokeWidth=".8" />
           )}

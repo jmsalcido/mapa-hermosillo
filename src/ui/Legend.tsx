@@ -35,8 +35,8 @@ export function Legend({ data, mode, wealthPrimary, groups, setGroups, workGroup
   if (mode === 'realm') {
     body = (
       <>
-        <p>Cada color es un <b>territorio</b>: un pedazo de la ciudad. Acércate para ver cada barrio y, más de cerca, cada manzana.</p>
-        <p className="legend-note">Los territorios y sus nombres son de este mapa; no son divisiones oficiales.</p>
+        <p>Cada color es un <b>{t('territory').toLowerCase()}</b>: un pedazo de la ciudad. Acércate para ver cada barrio y, más de cerca, cada manzana.</p>
+        <p className="legend-note">{t('realm_note')}</p>
       </>
     )
     source = 'INEGI y OpenStreetMap'

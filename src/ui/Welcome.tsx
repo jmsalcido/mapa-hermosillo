@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Concho, ModeIcon } from '../art/icons'
+import { Concho, ModeIcon, Seal } from '../art/icons'
+import { t } from '../i18n'
+import type { Skin } from '../skin'
 
 const KEY = 'hlm-bienvenida-vista'
 
 /** First-visit "¿Cómo se usa?" card, plus a "?" button to open it again. */
-export function Welcome() {
+export function Welcome({ skin }: { skin: Skin }) {
   const [open, setOpen] = useState(() => localStorage.getItem(KEY) !== '1')
   const close = () => {
     localStorage.setItem(KEY, '1')
@@ -29,7 +31,7 @@ export function Welcome() {
               <p className="welcome-lead">Un mapa de la ciudad hecho con datos reales: cuánta gente vive en cada barrio, qué tanto le falta y qué animales se han visto.</p>
               <ol className="welcome-steps">
                 <li>
-                  <span className="step-icon concho mini"><Concho /><ModeIcon id="people" /></span>
+                  <span className="step-icon concho mini">{skin === 'atlas' ? <Seal /> : <Concho />}<ModeIcon id="people" /></span>
                   <span><b>Escoge qué quieres ver</b> con los botones redondos de abajo: gente, bienestar, animales…</span>
                 </li>
                 <li>
@@ -40,9 +42,13 @@ export function Welcome() {
                   <span className="step-icon">👆</span>
                   <span><b>{touch ? 'Toca' : 'Haz clic en'} un barrio</b> para ver su ficha con todos sus datos.</span>
                 </li>
+                <li>
+                  <span className="step-icon">🗺️</span>
+                  <span><b>Cambia el estilo</b> del mapa arriba: <i>{t('skin_norteno')}</i> o <i>{t('skin_atlas')}</i>. Los datos son los mismos.</span>
+                </li>
               </ol>
               <p className="legend-note">Todos los números son reales y dicen de dónde salen. Si un dato no existe, el mapa lo dice en lugar de inventarlo.</p>
-              <button className="welcome-go" onClick={close} autoFocus>¡Órale, vamos!</button>
+              <button className="welcome-go" onClick={close} autoFocus>{t('welcome_go')}</button>
             </div>
           </div>
         </div>

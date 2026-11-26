@@ -1,6 +1,9 @@
 import { ModeIcon } from '../art/icons'
 import type { CoreData } from '../data'
 import { fmt, fmtDate, t } from '../i18n'
+import { ATLAS_EPITHET } from '../atlasNames'
+import type { Skin } from '../skin'
+import { SkinToggle } from './SkinToggle'
 
 function Item({ icon, label, value, note, muted }: { icon: React.ReactNode; label: string; value: string; note: string; muted?: boolean }) {
   return (
@@ -16,7 +19,7 @@ function Item({ icon, label, value, note, muted }: { icon: React.ReactNode; labe
 }
 
 /** Libro de cuentas: the top HUD, like a tooled-leather saddlebag strap. */
-export function Ledger({ data }: { data: CoreData }) {
+export function Ledger({ data, skin, setSkin }: { data: CoreData; skin: Skin; setSkin: (s: Skin) => void }) {
   const w = data.manifest.sources.inaturalist?.status === 'ok' ? data.stats.wildlife : null
   const jb = data.manifest.sources.inegi_denue?.status === 'ok' ? data.stats.work : null
   const wx = data.manifest.sources.nasa_power?.status === 'ok' ? data.stats.weather : null
@@ -25,6 +28,11 @@ export function Ledger({ data }: { data: CoreData }) {
       <div className="crest">
         <span className="crest-title">{t('title')}</span>
         <span className="crest-sub">{t('subtitle')}</span>
+        {skin === 'atlas' && (
+          <span className="crest-epithet" title={`${ATLAS_EPITHET.name}: “${ATLAS_EPITHET.gloss}” (nombre inventado)`}>
+            <span className="rune">{ATLAS_EPITHET.name}</span> · {ATLAS_EPITHET.gloss}
+          </span>
+        )}
       </div>
       <div className="ledger-items">
         <Item icon={<ModeIcon id="people" size={22} />} label={t('l_pop')} value={fmt(data.stats.municipio.pop)}
@@ -38,11 +46,12 @@ export function Ledger({ data }: { data: CoreData }) {
             note={`Temperatura máxima del aire en Hermosillo (NASA POWER). Llega con unos días de retraso. La más alta de la semana: ${fmt(wx.week_max.tmax, 0)} °C el ${shortDay(wx.week_max.date)}.`} />
         )}
         {jb && (
-          <Item icon={<ModeIcon id="work" size={22} />} label="lugares de chamba" value={fmt(jb.total)}
+          <Item icon={<ModeIcon id="work" size={22} />} label={skin === 'atlas' ? 'talleres y comercios' : 'lugares de chamba'} value={fmt(jb.total)}
             note={`Negocios con local en el municipio, según el directorio DENUE del INEGI (edición ${jb.edition.slice(5)}/${jb.edition.slice(0, 4)}). Ahí trabajan cerca de ${fmt(Math.round(jb.jobs_est / 1000) * 1000)} personas (cálculo).`} />
         )}
         <Item icon={<ScrollIcon />} label={t('l_refresh')} value={fmtDate(data.manifest.generated)} note="La última vez que se actualizaron los datos" />
       </div>
+      <SkinToggle skin={skin} setSkin={setSkin} />
     </header>
   )
 }

@@ -1,3 +1,5 @@
+import { getSkin } from './skin'
+
 // Interfaz solo en español de México, con vocabulario norteño.
 //   Territorio  = agrupación visual de AGEB (reino)
 //   Comarca     = territorio del anillo interior · Frontera = anillo exterior
@@ -63,10 +65,33 @@ export const T = {
   click_hint: 'Haz clic para ver todo sobre este barrio',
   census_2020: 'Censo 2020',
   wildlife: 'Animales vistos aquí',
+  // selector de estilo
+  skin_label: 'Estilo del mapa',
+  skin_norteno: 'Norteño',
+  skin_atlas: 'Atlas antiguo',
+  welcome_go: '¡Órale, vamos!',
 } as const
 
 export type Key = keyof typeof T
-export const t = (k: Key) => T[k]
+
+/** Atlas skin: same meaning, old-atlas wording. Anything missing falls back to T. */
+const T_ATLAS: Partial<Record<Key, string>> = {
+  subtitle: 'El Atlas Vivo',
+  m_realm: 'Reinos',
+  m_people: 'Gentes',
+  m_wildlife: 'Criaturas',
+  m_green: 'Verdor',
+  m_work: 'Oficios',
+  car: 'Carro',
+  territory: 'Reino',
+  chronicle: 'Los Anales',
+  legend: 'Leyenda del mapa',
+  loading: 'Desplegando el pergamino…',
+  realm_note: 'Los reinos y sus nombres antiguos son inventados para este mapa; no son divisiones oficiales. Abajo de cada nombre va su significado y el nombre real del lugar.',
+  welcome_go: '¡Adelante!',
+}
+
+export const t = (k: Key): string => (getSkin() === 'atlas' ? T_ATLAS[k] ?? T[k] : T[k])
 
 export const fmt = (n: number | null | undefined, digits = 0) =>
   n == null ? '—' : n.toLocaleString('es-MX', { maximumFractionDigits: digits })

@@ -105,3 +105,37 @@ export function Concho() {
     </svg>
   )
 }
+
+// Wax seal for the Atlas skin: a slightly irregular blob with a pressed inner ring.
+const BLOB = (() => {
+  const n = 14
+  let d = ''
+  for (let i = 0; i <= n; i++) {
+    const a = (i / n) * Math.PI * 2
+    const r = 28 + (i % 2 ? 1.6 : -0.6) + Math.sin(i * 2.3) * 1.2
+    d += `${i ? 'L' : 'M'}${(32 + Math.cos(a) * r).toFixed(2)} ${(32 + Math.sin(a) * r).toFixed(2)}`
+  }
+  return d + 'Z'
+})()
+
+export function Seal() {
+  return (
+    <svg className="concho-svg seal-svg" viewBox="0 0 64 64" aria-hidden="true">
+      <defs>
+        <radialGradient id="cera" cx=".38" cy=".32" r=".85">
+          <stop offset="0" stopColor="#c4584a" />
+          <stop offset=".55" stopColor="#8e2a22" />
+          <stop offset="1" stopColor="#4e1410" />
+        </radialGradient>
+        <radialGradient id="cera-oro" cx=".38" cy=".32" r=".85">
+          <stop offset="0" stopColor="#f3dc8e" />
+          <stop offset=".55" stopColor="#c09a3e" />
+          <stop offset="1" stopColor="#6e5418" />
+        </radialGradient>
+      </defs>
+      <path d={BLOB} className="seal-wax" stroke="#2b1a10" strokeWidth="1.2" strokeLinejoin="round" />
+      <circle cx="32" cy="32" r="21" fill="none" stroke="#000" strokeOpacity=".35" strokeWidth="2.4" />
+      <circle cx="32" cy="32" r="21" fill="none" stroke="#fff" strokeOpacity=".22" strokeWidth=".8" transform="translate(.6 .8)" />
+    </svg>
+  )
+}

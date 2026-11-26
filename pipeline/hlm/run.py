@@ -10,7 +10,7 @@ import statistics
 
 from shapely.geometry import mapping
 
-from . import base, chronicle, green, heat, osm, people, realms, wealth, wildlife, work
+from . import base, chronicle, coast, green, heat, osm, people, realms, wealth, wildlife, work
 from .common import OUT, Manifest, Provenance, round_coords, write_json
 
 
@@ -74,6 +74,8 @@ def main(argv=None):
     print("• wealth (CONAPO / CONEVAL)")
     imu = wealth.load_imu(m)
     grs = wealth.load_grs(m)
+    print("• sea (Natural Earth)")
+    coast.build_sea(m)
     if "osm" not in skip:
         print("• OpenStreetMap")
         places = osm.build_osm(m)

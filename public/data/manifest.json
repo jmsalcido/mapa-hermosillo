@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-26T16:01:47+00:00",
+  "generated": "2026-11-26T16:22:43+00:00",
   "sources": {
     "inegi_mg_ageb": {
       "id": "inegi_mg_ageb",
@@ -168,6 +168,18 @@
       "status": "ok",
       "notes": "39145 establecimientos en el municipio 030; 202 sin AGEB urbana. Empleos por AGEB estimados con el punto medio del rango PER_OCU (251+ = 300).",
       "modeled": false
+    },
+    "naturalearth_ocean": {
+      "id": "naturalearth_ocean",
+      "name": "Natural Earth — océanos 1:10m",
+      "url": "https://www.naturalearthdata.com/",
+      "license": "Dominio público",
+      "publisher": "Natural Earth",
+      "vintage": "5.1",
+      "retrieved": "2026-11-26",
+      "status": "ok",
+      "notes": "Contorno aproximado de la costa (escala 1:10 millones).",
+      "modeled": false
     }
   },
   "layers": {
@@ -256,6 +268,13 @@
         "inegi_censo2020"
       ],
       "count": 20445
+    },
+    "sea": {
+      "status": "ok",
+      "sources": [
+        "naturalearth_ocean"
+      ],
+      "count": 1
     }
   }
 }

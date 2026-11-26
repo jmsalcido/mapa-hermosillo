@@ -37,6 +37,7 @@ Delete a cached file to force a fresh download. `HLM_CACHE` and `HLM_OUT` overri
 | `blocks.geojson` | Manzanas with population and density (lazy-loaded by the app) |
 | `roads_major.geojson`, `roads_minor.geojson` | INEGI vialidades split by rank |
 | `landmarks.geojson`, `water_parks.geojson` | OSM points of interest, water, river, parks |
+| `sea.geojson` | Gulf of California around the coast (Natural Earth 1:10m ocean, clipped) |
 | `wildlife.geojson` | iNaturalist sightings (group, name, date, observer, licence, new-this-week flag) |
 | `trees.geojson` | Cartoon-tree points from WorldCover tree cells (`v` = NDVI there, `c` = tree fraction) |
 | `heat.png` | Summer ground-temperature picture (lon/lat bounds and °C range in `stats.json → heat.image`) |
@@ -52,6 +53,7 @@ Delete a cached file to force a fresh download. `HLM_CACHE` and `HLM_OUT` overri
 - `hlm/people.py`: Censo 2020 AGEB and manzana CSV; `*` → null
 - `hlm/wealth.py`: CONAPO IMU 2020 and CONEVAL GRS 2020 (column names auto-detected)
 - `hlm/osm.py`: Overpass queries with endpoint fallback
+- `hlm/coast.py`: Natural Earth ocean polygon clipped to the map area (`sea.geojson`), runs every time (cached a year)
 - `hlm/wildlife.py`: iNaturalist download (paged by id, ≤ 1 request/s), licence and privacy filters, per-AGEB counts
 - `hlm/heat.py`: Landsat summer LST composite (cached in `.cache/heat_comp_*.npz`), per-AGEB means, `heat.png`; NASA POWER daily max
 - `hlm/green.py`: Sentinel-2 NDVI (now and a year ago), WorldCover tree cover (cached `.npy`), `trees.geojson`

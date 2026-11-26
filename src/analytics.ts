@@ -4,6 +4,7 @@ type Ev =
   | { event: 'cambio_modo'; modo: string }
   | { event: 'abrir_barrio'; barrio: string; territorio: string }
   | { event: 'ver_ficha_punto'; tipo: 'animal' | 'negocio'; grupo: string }
+  | { event: 'cambio_estilo'; estilo: string }
 
 export function track(e: Ev) {
   const w = window as unknown as { dataLayer?: unknown[] }

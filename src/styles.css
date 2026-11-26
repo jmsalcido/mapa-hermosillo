@@ -415,3 +415,176 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @keyframes haze { to { background-position: 0 -60px; } }
 .legend-tree { display: flex; gap: 6px; align-items: center; }
 .legend-tree svg { flex: none; }
+
+/* ---------- selector de estilo (both skins) ---------- */
+.skin-toggle {
+  position: relative; flex: none; display: flex; padding: 2px; border-radius: 6px; z-index: 1;
+  background: rgba(0, 0, 0, .35); border: 1px solid rgba(201, 162, 74, .55);
+}
+.skin-toggle button {
+  border: 0; background: none; padding: 4px 9px; border-radius: 4px; white-space: nowrap;
+  font-family: var(--f-ui); font-size: 12px; font-weight: 700; letter-spacing: .04em; color: var(--papel-3);
+}
+.skin-toggle button.on { background: var(--laton); color: var(--ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35); }
+.skin-toggle button:not(.on):hover { color: var(--papel); }
+.rune { font-family: var(--f-rune, inherit); }
+.crest-epithet { display: none; }
+.atlas-overlay { display: none; }
+@media (max-width: 760px) {
+  .skin-toggle button { padding: 3px 6px; font-size: 10.5px; }
+  .skin-long { display: none; }
+}
+
+/* =====================================================================
+   Skin "Atlas antiguo": an old hand-inked fantasy atlas.
+   Vellum and ink, book-binding leather with gilt tooling, red wax seals,
+   heater shields, a compass rose. Our own drawing; nothing copied.
+   ===================================================================== */
+[data-skin='atlas'] {
+  --ink: #1f1a12;
+  --ink-2: #4a4130;
+  --papel: #f3ecd6;
+  --papel-2: #e7dcbc;
+  --papel-3: #cbbd94;
+  --cuero: #3d3a2c;
+  --cuero-2: #2a281e;
+  --cuero-osc: #16150f;
+  --hilo: rgba(31, 26, 18, .5);
+  --laton: #b8923a;
+  --laton-2: #e0c46e;
+  --turquesa: #3f6b4f;
+  --turquesa-2: #b5d8a8;
+  --chile: #8e2a22;
+  --f-title: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
+  --f-ui: 'IM Fell English', Georgia, serif;
+  --f-body: 'IM Fell English', Georgia, serif;
+  --f-rune: 'Uncial Antiqua', 'IM Fell English', Georgia, serif;
+  /* a red-ink rule between two black hairlines */
+  --sarape: linear-gradient(180deg, #1f1a12 0 1px, transparent 1px 2px, #8e2a22 2px 4px, transparent 4px 5px, #1f1a12 5px 6px);
+  /* "leather" surfaces become pages of the atlas */
+  --pagina: #e9dbb4;
+  --cuero-bg: var(--grano), var(--mancha), linear-gradient(#f1e5c4, var(--pagina) 60%, #d9c696);
+}
+[data-skin='atlas'] .map {
+  background: var(--grano), var(--mancha), var(--mancha), radial-gradient(ellipse at 50% 45%, #eadcb4 0%, #d6c08c 55%, #a88a55 100%);
+  background-size: 240px 240px, 900px 900px, 620px 620px, cover;
+}
+[data-skin='atlas'] .fx-vignette {
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(110, 76, 30, .35) 74%, rgba(36, 22, 8, .88) 100%);
+  box-shadow: inset 0 0 160px 44px rgba(52, 32, 10, .62);
+}
+[data-skin='atlas'] .fx-clouds span { background: radial-gradient(ellipse at center, rgba(255, 252, 240, .45), rgba(255, 252, 240, 0) 70%); }
+[data-skin='atlas'] .maplibregl-ctrl-attrib { background: rgba(243, 236, 214, .88) !important; }
+
+/* gilt double rules instead of stitching */
+[data-skin='atlas'] .card-head::before,
+[data-skin='atlas'] .ledger::before,
+[data-skin='atlas'] .modebar::before,
+[data-skin='atlas'] .panel-head::before {
+  border: 1px solid var(--hilo); box-shadow: inset 0 0 0 2px transparent, inset 0 0 0 3px rgba(31, 26, 18, .25);
+}
+[data-skin='atlas'] .crest { border-right: 1px solid var(--hilo); }
+[data-skin='atlas'] .card { border-color: var(--cuero-2); box-shadow: inset 0 0 0 1px var(--laton), inset 0 0 26px rgba(110, 86, 44, .25), 0 10px 26px rgba(10, 8, 2, .5); }
+[data-skin='atlas'] .card-head, [data-skin='atlas'] .mode-label, [data-skin='atlas'] .panel-titles h2 { letter-spacing: .02em; }
+[data-skin='atlas'] .crest-title { font-size: 22px; }
+[data-skin='atlas'] .crest-sub { letter-spacing: .18em; }
+[data-skin='atlas'] .crest-epithet { display: block; margin-top: 2px; font-family: var(--f-ui); font-style: italic; font-size: 11px; color: var(--papel-3); white-space: nowrap; }
+[data-skin='atlas'] .crest-epithet .rune { font-style: normal; color: var(--laton-2); }
+[data-skin='atlas'] .ledger { height: 66px; }
+[data-skin='atlas'] .chronicle, [data-skin='atlas'] .panel, [data-skin='atlas'] .mode-banner { top: 80px; }
+[data-skin='atlas'] .ledger-note { margin-top: 72px; }
+[data-skin='atlas'] .panel-body h3::after { border-top: 1px solid rgba(31, 26, 18, .45); box-shadow: 0 2px 0 -1px rgba(31, 26, 18, .25); }
+[data-skin='atlas'] .event time { font-family: var(--f-ui); font-style: italic; letter-spacing: .06em; }
+
+/* territory banners: a parchment scroll label under a hanging shield */
+[data-skin='atlas'] .banner-name {
+  font-family: var(--f-rune); font-size: 13px; letter-spacing: .02em; padding: 2px 10px 1px;
+  background: var(--grano), linear-gradient(#f7f1de, #e3d6b0); background-size: 240px, cover;
+  border: 1.2px solid var(--ink); border-radius: 8px / 50%;
+  box-shadow: inset 0 0 0 2px rgba(255, 252, 240, .5), 0 0 0 1px rgba(31, 26, 18, .15);
+}
+[data-skin='atlas'] .banner-title { font-family: var(--f-ui); font-weight: 400; font-size: 11px; }
+[data-skin='atlas'] .tt-title .rune, [data-skin='atlas'] .panel-titles .rune { font-size: 1.05em; }
+
+/* mode buttons: red wax seals, the active one in gold */
+[data-skin='atlas'] .seal-wax { fill: url(#cera); transition: fill .3s; }
+[data-skin='atlas'] .mode-btn.active .seal-wax { fill: url(#cera-oro); }
+[data-skin='atlas'] .mode-btn.active .concho { filter: drop-shadow(0 0 9px rgba(224, 196, 110, .8)); }
+[data-skin='atlas'] .mode-btn.active .concho > svg:not(.concho-svg) { color: var(--ink); filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .4)); }
+[data-skin='atlas'] .mode-btn.active .mode-label { color: var(--laton-2); }
+[data-skin='atlas'] .mode-label { font-size: 10.5px; }
+[data-skin='atlas'] .mode-btn:hover .concho { transform: translateY(-2px) rotate(4deg); }
+
+[data-skin='atlas'] .help-btn { color: var(--papel); border-color: var(--ink); background: radial-gradient(circle at 38% 32%, #c4584a, #8e2a22 55%, #4e1410); font-family: var(--f-rune); }
+[data-skin='atlas'] .welcome-go { background: var(--grano), linear-gradient(#5d8a68, var(--turquesa) 55%, #2a4a35); background-size: 240px, cover; }
+[data-skin='atlas'] .credits > button { background: rgba(26, 24, 16, .94); }
+[data-skin='atlas'] .portrait-atlas { border: 5px double var(--laton); border-radius: 50%; box-shadow: 0 0 0 2px var(--ink), 0 4px 10px rgba(0, 0, 0, .3); }
+[data-skin='atlas'] .splash { background: var(--grano), var(--repujado), radial-gradient(#3d3a2c, #12110c); background-size: 240px, 300px, cover; }
+[data-skin='atlas'] .splash-title { font-size: 54px; }
+[data-skin='atlas'] .sighting-link { color: var(--papel); }
+
+/* inked map frame and compass rose */
+[data-skin='atlas'] .atlas-overlay { display: block; position: absolute; inset: 0; pointer-events: none; }
+.atlas-frame {
+  position: absolute; inset: 72px 8px 34px 8px; border: 1.5px solid rgba(31, 26, 18, .55);
+  box-shadow: inset 0 0 0 4px rgba(243, 236, 214, .0), inset 0 0 0 5px rgba(31, 26, 18, .35);
+}
+.atlas-compass {
+  position: absolute; right: 22px; bottom: 74px; width: 112px; height: 112px; color: rgba(31, 26, 18, .6);
+  font-family: var(--f-title); filter: drop-shadow(0 1px 0 rgba(255, 252, 240, .6));
+}
+.game.has-panel .atlas-compass { display: none; }
+@media (max-width: 760px) {
+  [data-skin='atlas'] .ledger { height: 58px; }
+  [data-skin='atlas'] .crest-epithet { display: none; }
+  [data-skin='atlas'] .chronicle, [data-skin='atlas'] .mode-banner { top: 68px; }
+  [data-skin='atlas'] .crest-title { font-size: 16px; }
+  [data-skin='atlas'] .mode-label { font-family: var(--f-ui); font-size: 9.5px; }
+  .atlas-frame { inset: 62px 4px 30px 4px; }
+  .atlas-compass { width: 70px; height: 70px; right: 10px; bottom: auto; top: 76px; }
+}
+
+/* ---------- Atlas: panels as parchment pages, inked in black and red ---------- */
+[data-skin='atlas'] .card { border: 2px solid #5b4a2e; }
+[data-skin='atlas'] .card::after { display: none; }
+[data-skin='atlas'] .card-head,
+[data-skin='atlas'] .panel-head { color: var(--chile); text-shadow: none; border-bottom: 1px solid rgba(31, 26, 18, .5); }
+[data-skin='atlas'] .chev { color: var(--chile); }
+[data-skin='atlas'] .ledger { color: var(--ink); box-shadow: 0 4px 14px rgba(20, 12, 2, .45); }
+[data-skin='atlas'] .crest-title { color: var(--ink); text-shadow: none; }
+[data-skin='atlas'] .crest-sub { color: var(--chile); }
+[data-skin='atlas'] .crest-epithet { color: var(--ink-2); }
+[data-skin='atlas'] .crest-epithet .rune { color: var(--chile); }
+[data-skin='atlas'] .ledger-item { background: rgba(255, 250, 235, .35); border-color: rgba(31, 26, 18, .35); box-shadow: none; }
+[data-skin='atlas'] .ledger-icon { color: var(--chile); }
+[data-skin='atlas'] .ledger-label { color: var(--ink-2); }
+[data-skin='atlas'] .skin-toggle { background: rgba(31, 26, 18, .06); border-color: rgba(31, 26, 18, .4); }
+[data-skin='atlas'] .skin-toggle button { color: var(--ink-2); }
+[data-skin='atlas'] .skin-toggle button:not(.on):hover { color: var(--ink); }
+[data-skin='atlas'] .skin-toggle button.on { background: var(--chile); color: var(--papel); }
+[data-skin='atlas'] .modebar { border: 2px solid #5b4a2e; box-shadow: 0 8px 22px rgba(20, 12, 2, .5); }
+[data-skin='atlas'] .mode-btn { color: var(--ink); }
+[data-skin='atlas'] .mode-label { text-shadow: none; color: var(--ink); }
+[data-skin='atlas'] .mode-btn.active .mode-label { color: var(--chile); }
+[data-skin='atlas'] .mode-lock { background: var(--pagina); border-color: var(--ink); color: var(--ink); }
+[data-skin='atlas'] .panel-head {
+  background: var(--grano), var(--mancha), linear-gradient(90deg, color-mix(in srgb, var(--realm) 26%, #efe3c2), var(--pagina));
+  background-size: 240px, 900px, cover;
+}
+[data-skin='atlas'] .panel-titles h2 { text-shadow: none; }
+[data-skin='atlas'] .panel-titles p { color: var(--ink); }
+[data-skin='atlas'] .panel-titles .cvegeo { color: var(--ink-2); }
+[data-skin='atlas'] .close { background: var(--papel); border-color: var(--ink); color: var(--ink); }
+[data-skin='atlas'] .credits > button { background: rgba(225, 208, 166, .96); color: var(--ink-2); border-top-color: rgba(31, 26, 18, .5); }
+[data-skin='atlas'] .sheet-grip { background: var(--ink-2); }
+
+/* ---------- Atlas: bigger crowned shields with a ribbon name ---------- */
+[data-skin='atlas'] .banner-name {
+  position: relative; padding: 3px 20px 2px; border: 0; border-radius: 0; max-width: 200px;
+  font-size: 14px; color: var(--ink);
+  background: var(--grano), linear-gradient(#f8f0d8, #e2d2a6 55%, #cdb984); background-size: 240px, cover;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 50%, 100% 100%, 0 100%, 10px 50%);
+  box-shadow: inset 0 1.4px 0 var(--ink), inset 0 -1.4px 0 var(--ink), inset 0 3px 0 rgba(255, 252, 240, .6);
+}
+[data-skin='atlas'] .banner-title { margin-top: 2px; font-size: 11.5px; color: var(--ink); }
+[data-skin='atlas'] .banner { filter: drop-shadow(0 4px 3px rgba(30, 18, 4, .45)); }

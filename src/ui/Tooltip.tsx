@@ -1,13 +1,17 @@
-import { shieldSVG } from '../art/heraldry'
-import { fmt, shortName, t } from '../i18n'
+import { crestSVG } from '../art/heraldry'
+import { realmLabel } from '../atlasNames'
+import { fmt, t } from '../i18n'
+import type { Skin } from '../skin'
 import type { HoverInfo, Tier } from '../map/MapView'
 import type { ModeId } from '../modes'
 import { WEALTH_PLAIN } from './Legend'
 
-export function Tooltip({ h, mode, tier }: { h: HoverInfo; mode: ModeId; tier: Tier }) {
+export function Tooltip({ h, mode, tier, skin }: { h: HoverInfo; mode: ModeId; tier: Tier; skin: Skin }) {
   const { ageb: a, realm: r } = h
   const zoneView = tier === 'realm'
-  const zone = shortName(r.name) ?? r.title
+  const atlas = skin === 'atlas'
+  const L = realmLabel(r, atlas)
+  const zone = L.zone
 
   let stat: React.ReactNode
   if (zoneView) {
@@ -34,10 +38,10 @@ export function Tooltip({ h, mode, tier }: { h: HoverInfo; mode: ModeId; tier: T
   return (
     <div className="tooltip card" style={{ left, top }} role="status">
       <div className="tt-head">
-        <span dangerouslySetInnerHTML={{ __html: shieldSVG(r.color, r.charge, 26) }} />
+        <span dangerouslySetInnerHTML={{ __html: crestSVG(skin, r.color, r.charge, 26) }} />
         <div>
-          <div className="tt-title">{zoneView ? zone : `Barrio en ${zone}`}</div>
-          <div className="tt-sub">{zoneView ? (r.name ? r.title : '') : `n.º ${a.ageb}`}</div>
+          <div className="tt-title">{zoneView ? (atlas ? <span className="rune">{L.name}</span> : zone) : `Barrio en ${zone}`}</div>
+          <div className="tt-sub">{zoneView ? L.sub : `n.º ${a.ageb}`}</div>
         </div>
       </div>
       <div className="tt-stat">{stat}</div>

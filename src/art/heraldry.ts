@@ -5,8 +5,9 @@ const BURN = '#24170d'
 const ROPE = '#c9a66b'
 
 // Brands are drawn as thick burnt strokes inside a 60×60 box (centre 30,34).
-const s = `stroke="${BURN}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" fill="none"`
-const BRANDS: Record<string, string> = {
+const strokeAttrs = (c: string, w = 3.6) => `stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" fill="none"`
+const s = strokeAttrs(BURN)
+const brands = (s: string): Record<string, string> => ({
   sun: `<circle cx="30" cy="34" r="6" ${s}/>` +
     Array.from({ length: 8 }, (_, i) => {
       const a = (i * Math.PI) / 4
@@ -28,7 +29,8 @@ const BRANDS: Record<string, string> = {
   gear: `<circle cx="30" cy="34" r="4" ${s}/>` +
     Array.from({ length: 6 }, (_, i) => `<path d="M30 28.5L30 20" ${s} transform="rotate(${i * 60} 30 34)"/>`).join('') +
     `<path d="M14 34h8" ${s}/>`,
-}
+})
+const BRANDS = brands(s)
 
 /** Hanging ranch plank, painted with the territory colour and branded. */
 export function bannerSVG(color: string, charge: string, size = 46): string {
@@ -60,3 +62,64 @@ export function shieldSVG(color: string, charge: string, size = 34): string {
   <g transform="translate(0 4)">${BRANDS[charge] ?? BRANDS.star}</g>
 </svg>`
 }
+
+// ---------- Atlas skin: heater shields with a gilt edge and pale heraldic charges ----------
+const GILT = '#c9a646'
+const ATLAS_INK = '#1f1a12'
+const ARGENT = '#f6eed8'
+const as = strokeAttrs(ARGENT, 3.2)
+const ATLAS_CHARGES: Record<string, string> = {
+  ...brands(as),
+  // tower: a small crenellated keep
+  tower: `<path d="M22 48V30h-2v-6h4v3h4v-3h4v3h4v-3h4v6h-2v18z" ${as}/><path d="M28 48v-6a2 2 0 0 1 4 0v6" ${strokeAttrs(ARGENT, 2.4)}/>`,
+  // wheat: a bound sheaf
+  wheat: `<path d="M30 49V24M30 40l-7-14M30 40l7-14M30 34l-4-12M30 34l4-12" ${as}/><path d="M24 40h12" ${strokeAttrs(ARGENT, 2.6)}/>`,
+  // gear: a cog wheel
+  gear: `<circle cx="30" cy="34" r="8" ${as}/><circle cx="30" cy="34" r="2.5" ${strokeAttrs(ARGENT, 2.4)}/>` +
+    Array.from({ length: 8 }, (_, i) => `<path d="M30 23.5V20" ${strokeAttrs(ARGENT, 3.6)} transform="rotate(${i * 45} 30 34)"/>`).join(''),
+}
+const HEATER = 'M10 16h40v20c0 15-9 25-20 32C19 61 10 51 10 36z'
+const HEATER_IN = 'M14 20h32v16c0 12-7 20-16 26-9-6-16-14-16-26z'
+
+/** Atlas banner: a crowned heater shield with a gilt edge, tinted with the territory colour. */
+export function atlasBannerSVG(color: string, charge: string, size = 46): string {
+  const id = `a${color.slice(1)}${charge}`
+  // a three-point coronet with pearls, drawn above the shield
+  const crown = `<path d="M17 17l-2-9 7 5 8-9 8 9 7-5-2 9z" fill="url(#${id}g)" stroke="${ATLAS_INK}" stroke-width="1.3" stroke-linejoin="round"/>` +
+    `<path d="M17 17h26" stroke="${ATLAS_INK}" stroke-width="1.3"/>` +
+    [[15, 8], [30, 4], [45, 8]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.8" fill="${ARGENT}" stroke="${ATLAS_INK}" stroke-width=".8"/>`).join('') +
+    `<circle cx="30" cy="13" r="1.6" fill="#8e2a22" stroke="${ATLAS_INK}" stroke-width=".6"/>`
+  return `<svg viewBox="0 0 60 80" width="${size}" height="${(size * 80) / 60}" aria-hidden="true">
+  <defs>
+    <linearGradient id="${id}" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".25"/><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/>
+    </linearGradient>
+    <linearGradient id="${id}g" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f3dc8e"/><stop offset=".6" stop-color="${GILT}"/><stop offset="1" stop-color="#7a5e1c"/>
+    </linearGradient>
+  </defs>
+  ${crown}
+  <g transform="translate(0 3)">
+    <path d="${HEATER}" fill="url(#${id}g)" stroke="${ATLAS_INK}" stroke-width="1.6" stroke-linejoin="round" transform="translate(30 42) scale(1.1) translate(-30 -42)"/>
+    <path d="${HEATER}" fill="${color}" stroke="${ATLAS_INK}" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="${HEATER}" fill="url(#${id})"/>
+    <path d="${HEATER_IN}" fill="none" stroke="${ARGENT}" stroke-opacity=".55" stroke-width="1"/>
+    <g transform="translate(0 6)">${ATLAS_CHARGES[charge] ?? ATLAS_CHARGES.star}</g>
+  </g>
+</svg>`
+}
+
+/** Small atlas coat of arms for the ficha and tooltips. */
+export function atlasShieldSVG(color: string, charge: string, size = 34): string {
+  return `<svg viewBox="8 14 44 56" width="${size}" height="${(size * 56) / 44}" aria-hidden="true">
+  <path d="${HEATER}" fill="${color}" stroke="${ATLAS_INK}" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="${HEATER_IN}" fill="none" stroke="${GILT}" stroke-width="1.6"/>
+  <g transform="translate(0 4)">${ATLAS_CHARGES[charge] ?? ATLAS_CHARGES.star}</g>
+</svg>`
+}
+
+/** Pick the territory badge for the current skin. */
+export const crestSVG = (skin: 'norteno' | 'atlas', color: string, charge: string, size?: number) =>
+  skin === 'atlas' ? atlasShieldSVG(color, charge, size) : shieldSVG(color, charge, size)
+export const realmBannerSVG = (skin: 'norteno' | 'atlas', color: string, charge: string, size?: number) =>
+  skin === 'atlas' ? atlasBannerSVG(color, charge, size) : bannerSVG(color, charge, size)

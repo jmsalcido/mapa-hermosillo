@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { loadCore, type Ageb, type CoreData, type Realm } from './data'
 import { t } from './i18n'
 import { track } from './analytics'
+import { useSkin } from './skin'
 import { MapView, type HoverInfo, type SightingInfo, type Tier } from './map/MapView'
 import { GROUPS, type Group } from './art/critters'
 import { WORK_GROUPS, type WorkGroup } from './art/work'
@@ -15,6 +16,7 @@ import { Legend } from './ui/Legend'
 import { ModeBar } from './ui/ModeBar'
 import { ProvincePanel } from './ui/ProvincePanel'
 import { Tooltip } from './ui/Tooltip'
+import { AtlasOverlay } from './art/AtlasOverlay'
 
 export default function App() {
   const [data, setData] = useState<CoreData | null>(null)
@@ -37,6 +39,7 @@ function Splash({ error }: { error: boolean }) {
 
 function Game({ data }: { data: CoreData }) {
   const [mode, setMode] = useState<ModeId>('realm')
+  const [skin, setSkin] = useSkin()
   const [hover, setHover] = useState<HoverInfo | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [tier, setTier] = useState<Tier>('realm')
@@ -77,6 +80,12 @@ function Game({ data }: { data: CoreData }) {
     lastMode.current = mode
     track({ event: 'cambio_modo', modo: mode })
   }, [mode])
+  const lastSkin = useRef(skin)
+  useEffect(() => {
+    if (lastSkin.current === skin) return
+    lastSkin.current = skin
+    track({ event: 'cambio_estilo', estilo: skin })
+  }, [skin])
   useEffect(() => {
     const a = selected ? agebById.get(selected) : null
     if (a) track({ event: 'abrir_barrio', barrio: a.cvegeo, territorio: realmById.get(a.realm)?.name ?? realmById.get(a.realm)?.title ?? '' })
@@ -91,10 +100,11 @@ function Game({ data }: { data: CoreData }) {
   const st = modeState(data.manifest, mode)
 
   return (
-    <div className={`game mode-${mode}${sel ? ' has-panel' : ''}`}>
+    <div className={`game mode-${mode} skin-${skin}${sel ? ' has-panel' : ''}`}>
       <MapView
         data={data}
         mode={mode}
+        skin={skin}
         wealthPrimary={wealthPrimary}
         selected={selected}
         onHover={setHover}
@@ -114,8 +124,9 @@ function Game({ data }: { data: CoreData }) {
         </div>
       )}
       <div className="fx-vignette" aria-hidden="true" />
+      {skin === 'atlas' && <AtlasOverlay />}
 
-      <Ledger data={data} />
+      <Ledger data={data} skin={skin} setSkin={setSkin} />
       <Chronicle data={data} />
       {st !== 'ok' && (
         <div className="mode-banner card" role="status">
@@ -123,12 +134,12 @@ function Game({ data }: { data: CoreData }) {
         </div>
       )}
       <Legend data={data} mode={mode} wealthPrimary={wealthPrimary} groups={groups} setGroups={setGroups} workGroups={workGroups} setWorkGroups={setWorkGroups} />
-      <ModeBar manifest={data.manifest} mode={mode} setMode={setMode} />
-      {hover && !sel && !sighting && window.matchMedia('(hover: hover)').matches && <Tooltip h={hover} mode={mode} tier={tier} />}
+      <ModeBar manifest={data.manifest} mode={mode} setMode={setMode} skin={skin} />
+      {hover && !sel && !sighting && window.matchMedia('(hover: hover)').matches && <Tooltip h={hover} mode={mode} tier={tier} skin={skin} />}
       {sighting && <SightingCard info={sighting} onClose={() => showSighting(null, true)} />}
-      {sel && <ProvincePanel data={data} ageb={sel} realm={realmById.get(sel.realm)!} onClose={() => setSelected(null)} />}
+      {sel && <ProvincePanel data={data} ageb={sel} realm={realmById.get(sel.realm)!} skin={skin} onClose={() => setSelected(null)} />}
       <Credits manifest={data.manifest} />
-      <Welcome />
+      <Welcome skin={skin} />
     </div>
   )
 }

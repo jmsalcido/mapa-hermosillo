@@ -1,10 +1,11 @@
-import { Concho, LockIcon, ModeIcon } from '../art/icons'
+import { Concho, LockIcon, ModeIcon, Seal } from '../art/icons'
+import type { Skin } from '../skin'
 import type { Manifest } from '../data'
 import { t } from '../i18n'
 import { MODES, modeState, type ModeId } from '../modes'
 
 /** Map modes as silver conchos on a leather belt. */
-export function ModeBar({ manifest, mode, setMode }: { manifest: Manifest; mode: ModeId; setMode: (m: ModeId) => void }) {
+export function ModeBar({ manifest, mode, setMode, skin }: { manifest: Manifest; mode: ModeId; setMode: (m: ModeId) => void; skin: Skin }) {
   return (
     <nav className="modebar" aria-label="Modos del mapa">
       {MODES.map((m, i) => {
@@ -21,7 +22,7 @@ export function ModeBar({ manifest, mode, setMode }: { manifest: Manifest; mode:
             title={`${m.hint}${sub ? ` (${sub.toLowerCase()})` : ''} · tecla ${i + 1}`}
           >
             <span className="concho">
-              <Concho />
+              {skin === 'atlas' ? <Seal /> : <Concho />}
               <ModeIcon id={m.id} />
               {st !== 'ok' && <span className="mode-lock"><LockIcon /></span>}
             </span>

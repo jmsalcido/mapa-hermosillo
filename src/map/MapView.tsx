@@ -1,15 +1,16 @@
 import { useEffect, useRef } from 'react'
 import maplibregl, { type Map as MLMap, type MapGeoJSONFeature } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { baseStyle, INK } from './style'
+import { baseStyle, PALETTES, SKIN_PAINT } from './style'
+import type { Skin } from '../skin'
 import { dataUrl, type Ageb, type Biz, type CoreData, type Realm, type Sighting } from '../data'
 import { blockPeopleColorExpr, greenColorExpr, heatColorExpr, peopleColorExpr, wealthColorExpr, wildlifeColorExpr, workColorExpr, type ModeId } from '../modes'
 import { addCritterImages, critterSVG, type Group } from '../art/critters'
 import { addTreeImage } from '../art/trees'
 import { addWorkImages, WORK_GROUPS, type WorkGroup } from '../art/work'
-import { bannerSVG } from '../art/heraldry'
+import { realmBannerSVG } from '../art/heraldry'
+import { realmLabel } from '../atlasNames'
 import { tokenMinZoom, tokenSVG } from '../art/tokens'
-import { shortName } from '../i18n'
 
 export type Tier = 'realm' | 'county' | 'block'
 export const tierOf = (z: number): Tier => (z < 12 ? 'realm' : z < 14.2 ? 'county' : 'block')
@@ -32,6 +33,7 @@ export interface HoverInfo {
 interface Props {
   data: CoreData
   mode: ModeId
+  skin: Skin
   wealthPrimary: 'imu' | 'grs' | null
   selected: string | null
   onHover: (h: HoverInfo | null) => void
@@ -56,7 +58,7 @@ const OPACITY: Record<string, [number, number, number]> = {
 const opacityExpr = (m: string, k: number) =>
   ['interpolate', ['linear'], ['zoom'], 9, OPACITY[m][0] * k, 12, OPACITY[m][1] * k, 15, OPACITY[m][2] * k] as unknown as number
 
-export function MapView({ data, mode, wealthPrimary, selected, onHover, onSelect, onTier, groups, workGroups, onSighting }: Props) {
+export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, onSelect, onTier, groups, workGroups, onSighting }: Props) {
   const el = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MLMap | null>(null)
   const weights = useRef<Record<string, number>>({ realm: 1, people: 0, wealth: 0, wildlife: 0, heat: 0, green: 0, work: 0 })
@@ -67,6 +69,8 @@ export function MapView({ data, mode, wealthPrimary, selected, onHover, onSelect
   const liveMarkers = useRef<{ m: maplibregl.Marker; g: Group }[]>([])
   const heatMarkers = useRef<maplibregl.Marker[]>([])
   const wildState = useRef<'none' | 'loading' | 'ready'>('none')
+  const skinRef = useRef(skin)
+  skinRef.current = skin
   const modeRef = useRef(mode)
   modeRef.current = mode
   const groupsRef = useRef(groups)
@@ -80,9 +84,10 @@ export function MapView({ data, mode, wealthPrimary, selected, onHover, onSelect
     const realmsById = new Map<string, Realm>()
     for (const f of data.realms.features) realmsById.set((f.properties as Realm).id, f.properties as Realm)
 
+    const INK = PALETTES[skinRef.current].ink
     const map = new maplibregl.Map({
       container: el.current,
-      style: baseStyle(),
+      style: baseStyle(skinRef.current),
       center: [-110.975, 29.085],
       zoom: window.innerWidth < 700 ? 10.4 : 11.3,
       minZoom: 8,
@@ -150,7 +155,7 @@ export function MapView({ data, mode, wealthPrimary, selected, onHover, onSelect
         id: 'roads', type: 'line', source: 'roads', minzoom: 12,
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
-          'line-color': '#f3e4c0', 'line-opacity': ['interpolate', ['linear'], ['zoom'], 12, 0, 13, 0.9],
+          'line-color': PALETTES[skinRef.current].road, 'line-opacity': ['interpolate', ['linear'], ['zoom'], 12, 0, 13, 0.9],
           'line-width': ['interpolate', ['linear'], ['zoom'], 12, ['match', ['get', 'r'], 1, 0.8, 0.3], 16, ['match', ['get', 'r'], 1, 4.5, 2.6]],
         },
       })
@@ -179,11 +184,11 @@ export function MapView({ data, mode, wealthPrimary, selected, onHover, onSelect
       })
       map.addLayer({
         id: 'hover-line', type: 'line', source: 'agebs',
-        paint: { 'line-color': '#fff3cf', 'line-width': 3, 'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, 0] },
+        paint: { 'line-color': PALETTES[skinRef.current].hover, 'line-width': 3, 'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, 0] },
       })
       map.addLayer({
         id: 'sel-line', type: 'line', source: 'agebs', filter: ['==', ['get', 'cvegeo'], ''],
-        paint: { 'line-color': '#e2b23c', 'line-width': 4 },
+        paint: { 'line-color': PALETTES[skinRef.current].sel, 'line-width': 4 },
       })
       map.addLayer({
         id: 'sel-line-ink', type: 'line', source: 'agebs', filter: ['==', ['get', 'cvegeo'], ''],
@@ -195,7 +200,7 @@ export function MapView({ data, mode, wealthPrimary, selected, onHover, onSelect
         const div = document.createElement('div')
         div.className = 'banner'
         div.style.setProperty('--realm', r.color)
-        div.innerHTML = `${bannerSVG(r.color, r.charge, 32)}<div class="banner-name"></div><div class="banner-title"></div>`
+        div.innerHTML = `<span class="banner-art"></span><div class="banner-name"></div><div class="banner-title"></div>`
         div.addEventListener('click', e => {
           e.stopPropagation()
           const ag = data.agebs.features.filter(f => (f.properties as Ageb).realm === r.id)
@@ -210,7 +215,7 @@ export function MapView({ data, mode, wealthPrimary, selected, onHover, onSelect
         const m = new maplibregl.Marker({ element: div, anchor: 'bottom' }).setLngLat(r.label).addTo(map)
         banners.current.push({ m, r })
       }
-      renderBannerText()
+      // banner art and text are drawn by applySkin() below
 
       // landmark tokens (OSM)
       fetch(dataUrl('landmarks.geojson'))
@@ -242,6 +247,7 @@ export function MapView({ data, mode, wealthPrimary, selected, onHover, onSelect
 
       updateZoomClasses()
       applyWeights()
+      applySkin() // in case the skin changed while the map was loading
       if (modeRef.current === 'wildlife') loadWildlife()
       if (modeRef.current === 'green') loadTrees()
       if (modeRef.current === 'work') loadWork()
@@ -260,12 +266,12 @@ export function MapView({ data, mode, wealthPrimary, selected, onHover, onSelect
       }, 'roads-casing')
       map.addLayer({
         id: 'blocks-line', type: 'line', source: 'blocks', minzoom: 14,
-        paint: { 'line-color': INK, 'line-opacity': ['interpolate', ['linear'], ['zoom'], 14, 0, 15, 0.35], 'line-width': 0.6 },
+        paint: { 'line-color': PALETTES[skinRef.current].ink, 'line-opacity': ['interpolate', ['linear'], ['zoom'], 14, 0, 15, 0.35], 'line-width': 0.6 },
       }, 'roads-casing')
       map.addLayer({
         id: 'roads-minor', type: 'line', source: 'roads-minor', minzoom: 14,
         layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: { 'line-color': '#f3e4c0', 'line-opacity': ['interpolate', ['linear'], ['zoom'], 14, 0, 15, 0.8], 'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0.5, 17, 3] },
+        paint: { 'line-color': PALETTES[skinRef.current].road, 'line-opacity': ['interpolate', ['linear'], ['zoom'], 14, 0, 15, 0.8], 'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0.5, 17, 3] },
       }, 'roads-casing')
       applyWeights()
     }
@@ -401,8 +407,8 @@ export function MapView({ data, mode, wealthPrimary, selected, onHover, onSelect
       const sorted = [...banners.current].sort((a, b) => b.r.pop - a.r.pop)
       for (const { m, r } of sorted) {
         const p = map.project(r.label)
-        const w = Math.min(170, 30 + (r.name ?? r.title).length * 7.5)
-        const hit = placed.some(q => Math.abs(q.x - p.x) < (q.w + w) / 2 && Math.abs(q.y - p.y) < 62)
+        const w = Math.min(170, 30 + realmLabel(r, skinRef.current === 'atlas').name.length * 7.5)
+        const hit = placed.some(q => Math.abs(q.x - p.x) < (q.w + w) / 2 && Math.abs(q.y - p.y) < (skinRef.current === 'atlas' ? 76 : 62))
         m.getElement().classList.toggle('collide', hit)
         if (!hit) placed.push({ x: p.x, y: p.y, w })
       }
@@ -420,7 +426,7 @@ export function MapView({ data, mode, wealthPrimary, selected, onHover, onSelect
       if (id) map.setFeatureState({ source: 'agebs', id }, { hover: true })
     }
     const pick = (pt: maplibregl.PointLike): MapGeoJSONFeature | undefined =>
-      map.queryRenderedFeatures(pt, { layers: ['fill-realm', 'fill-people', 'fill-wealth', 'fill-wildlife', 'fill-heat', 'fill-green', 'fill-work'] })[0]
+      !map.getLayer('fill-realm') ? undefined : map.queryRenderedFeatures(pt, { layers: ['fill-realm', 'fill-people', 'fill-wealth', 'fill-wildlife', 'fill-heat', 'fill-green', 'fill-work'] })[0]
     const pickCritter = (pt: maplibregl.Point): Pick<SightingInfo, 's' | 'b'> | undefined => {
       const box: [maplibregl.PointLike, maplibregl.PointLike] = [[pt.x - 8, pt.y - 8], [pt.x + 8, pt.y + 8]]
       if (modeRef.current === 'work' && map.getLayer('work-pts')) {
@@ -573,14 +579,30 @@ export function MapView({ data, mode, wealthPrimary, selected, onHover, onSelect
   }, [selected])
 
   function renderBannerText() {
+    const s = skinRef.current
     for (const { m, r } of banners.current) {
       const e = m.getElement()
-      const name = shortName(r.name)
-      e.querySelector('.banner-name')!.textContent = name ?? r.title
-      e.querySelector('.banner-title')!.textContent = name ? r.title : ''
-      e.setAttribute('aria-label', `${name ?? ''} ${r.title}`)
+      const L = realmLabel(r, s === 'atlas')
+      e.querySelector('.banner-art')!.innerHTML = realmBannerSVG(s, r.color, r.charge, s === 'atlas' ? 44 : 32)
+      e.querySelector('.banner-name')!.textContent = L.name
+      e.querySelector('.banner-title')!.textContent = L.sub
+      e.setAttribute('aria-label', `${L.name} ${L.sub}`)
     }
   }
+
+  // ---------- skin: repaint the base map and lines, redraw banners (no setStyle, so our layers stay) ----------
+  function applySkin() {
+    const map = mapRef.current
+    if (!map || !map.getLayer('fill-realm')) return
+    const P = PALETTES[skinRef.current]
+    for (const [id, prop, k] of SKIN_PAINT) if (map.getLayer(id)) map.setPaintProperty(id, prop, P[k])
+    renderBannerText()
+    map.fire('moveend') // re-run banner declutter: sizes differ per skin
+  }
+  useEffect(() => {
+    applySkin()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skin])
 
   return <div ref={el} className="map" data-mode={mode} />
 }
