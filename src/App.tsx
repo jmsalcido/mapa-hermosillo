@@ -6,6 +6,7 @@ import { useSkin } from './skin'
 import { MapView, type HoverInfo, type SightingInfo, type Tier } from './map/MapView'
 import { GROUPS, type Group } from './art/critters'
 import { WORK_GROUPS, type WorkGroup } from './art/work'
+import { WATER_USES, type WaterUse } from './art/water'
 import { SightingCard } from './ui/SightingCard'
 import { Welcome } from './ui/Welcome'
 import { MODES, modeState, type ModeId } from './modes'
@@ -45,6 +46,7 @@ function Game({ data }: { data: CoreData }) {
   const [tier, setTier] = useState<Tier>('realm')
   const [groups, setGroups] = useState<Set<Group>>(() => new Set(GROUPS))
   const [workGroups, setWorkGroups] = useState<Set<WorkGroup>>(() => new Set(WORK_GROUPS))
+  const [waterUses, setWaterUses] = useState<Set<WaterUse>>(() => new Set(WATER_USES))
   const [sighting, setSighting] = useState<SightingInfo | null>(null)
   // a pinned card (clicked) survives hover-out; only an explicit map click or ✕ clears it
   const showSighting = (next: SightingInfo | null, explicit = false) =>
@@ -93,6 +95,7 @@ function Game({ data }: { data: CoreData }) {
   useEffect(() => {
     if (!sighting?.pinned) return
     if (sighting.b) track({ event: 'ver_ficha_punto', tipo: 'negocio', grupo: sighting.b.g })
+    else if (sighting.well) track({ event: 'ver_ficha_punto', tipo: 'pozo', grupo: sighting.well.u })
     else if (sighting.s) track({ event: 'ver_ficha_punto', tipo: 'animal', grupo: sighting.s.g })
   }, [sighting])
 
@@ -112,6 +115,7 @@ function Game({ data }: { data: CoreData }) {
         onTier={setTier}
         groups={groups}
         workGroups={workGroups}
+        waterUses={waterUses}
         onSighting={showSighting}
       />
       <div className="fx-clouds" aria-hidden="true">
@@ -133,7 +137,7 @@ function Game({ data }: { data: CoreData }) {
           <strong>{t(`m_${mode}`)}</strong> — {st === 'soon' ? t('soon') : t('unavailable')}
         </div>
       )}
-      <Legend data={data} mode={mode} wealthPrimary={wealthPrimary} groups={groups} setGroups={setGroups} workGroups={workGroups} setWorkGroups={setWorkGroups} />
+      <Legend data={data} mode={mode} wealthPrimary={wealthPrimary} groups={groups} setGroups={setGroups} workGroups={workGroups} setWorkGroups={setWorkGroups} waterUses={waterUses} setWaterUses={setWaterUses} />
       <ModeBar manifest={data.manifest} mode={mode} setMode={setMode} skin={skin} />
       {hover && !sel && !sighting && window.matchMedia('(hover: hover)').matches && <Tooltip h={hover} mode={mode} tier={tier} skin={skin} />}
       {sighting && <SightingCard info={sighting} onClose={() => showSighting(null, true)} />}

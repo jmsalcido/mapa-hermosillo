@@ -1,6 +1,8 @@
 import { critterSVG, GROUP_INFO } from '../art/critters'
 import type { SightingInfo } from '../map/MapView'
 import { SIZE_LABEL, WORK_INFO, workSVG } from '../art/work'
+import { pools, WATER_INFO, waterSVG } from '../art/water'
+import { fmt } from '../i18n'
 
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
@@ -12,6 +14,7 @@ const LICENSE: Record<string, string> = {
 /** Card for one iNaturalist sighting. Hover shows it; a click pins it with a link to the photo. */
 export function SightingCard({ info, onClose }: { info: SightingInfo; onClose: () => void }) {
   if (info.b) return <BizCard info={info} onClose={onClose} />
+  if (info.well) return <WellCard info={info} onClose={onClose} />
   const { pinned } = info
   const s = info.s!
   const g = GROUP_INFO[s.g]
@@ -64,6 +67,34 @@ function BizCard({ info, onClose }: { info: SightingInfo; onClose: () => void })
         {b.s >= 0 ? <>Trabajan aquí <b>{SIZE_LABEL[b.s]} personas</b>.</> : <>No se sabe cuánta gente trabaja aquí.</>}
       </div>
       {y && <div className="sighting-credit">En el directorio del INEGI desde {m ? `${MONTHS[Number(m) - 1]} de ` : ''}{y}.</div>}
+    </div>
+  )
+}
+
+/** Card for one REPDA well or intake. Private people are never named: their points are also rounded. */
+function WellCard({ info, onClose }: { info: SightingInfo; onClose: () => void }) {
+  const w = info.well!
+  const u = WATER_INFO[w.u]
+  const left = Math.min(info.x + 16, window.innerWidth - 290)
+  const top = Math.min(Math.max(info.y - 30, 70), window.innerHeight - 230)
+  const p = pools(w.v)
+  return (
+    <div className={`sighting card${info.pinned ? ' pinned' : ''}`} style={{ left, top }} role={info.pinned ? 'dialog' : 'status'}>
+      <div className="sighting-head">
+        <span dangerouslySetInnerHTML={{ __html: waterSVG(w.u, 42, true, w.k) }} />
+        <div>
+          <div className="tt-title">{w.k === 1 ? 'Toma de río o presa' : 'Pozo'} · {u.name.toLowerCase()}</div>
+          <div className="tt-sub">{w.h || 'Particular (no mostramos nombres de personas)'}</div>
+        </div>
+        {info.pinned && <button className="close" onClick={onClose} aria-label="Cerrar">✕</button>}
+      </div>
+      <div className="tt-stat">
+        Tiene permiso para sacar <b>{fmt(w.v)} m³</b> de agua al año{p >= 1 ? <> (como <b>{fmt(p)}</b> {p === 1 ? 'alberca olímpica' : 'albercas olímpicas'})</> : null}.
+      </div>
+      <div className="sighting-credit">
+        {w.aq ? `Acuífero ${w.aq}. ` : ''}{w.d ? 'Dentro del Distrito de Riego 051. ' : ''}{w.y ? `Título registrado en ${w.y}. ` : ''}
+        Es lo que permite el título, no lo que se mide.{!w.h ? ' Ubicación aproximada (unos 100 m).' : ''}
+      </div>
     </div>
   )
 }

@@ -28,6 +28,11 @@ Spatial unit: INEGI **AGEB urbana** (key `CVEGEO`, 13 characters). Sonora = `26`
 | Green | ESA WorldCover 2021 v200, tiles N27W111 + N27W114 | ESA | 2021 | Static (cached) | CC-BY 4.0 | **Built**: % tree cover per AGEB and 6,030 cartoon-tree points. Labelled as a satellite estimate |
 | Wildlife | iNaturalist observations, research grade, animals only (`iconic_taxa` = Aves, Reptilia, Mammalia, Amphibia, Insecta, Arachnida, Mollusca, Actinopterygii, Animalia), same bbox | iNaturalist | live | Weekly | Per observation: only CC0 / CC BY / CC BY-NC (and -SA/-ND variants) kept, observer credited | **Built**: 12,822 licensed of 17,505; 12,456 drawn; 6,082 inside urban AGEBs |
 | Work | DENUE Sonora (`denue_26_csv.zip`, filtered to `CVE_MUN = 030`) | INEGI | edition 11/2026 (published 2026-11-25) | Twice a year (May / Nov); checked weekly | INEGI Términos de libre uso | **Built**: 39,145 businesses; 38,943 in urban AGEBs. Jobs per AGEB are *estimated* |
+| Water | REPDA — Registro Público de Derechos de Agua (CSV release: titles + location annexes, incl. irrigation districts), filtered to state 26 / municipio 30 | CONAGUA (unmodified releases preserved on Zenodo, record 24183265) | release 2025-06 (last registration 2025-06-11) | CONAGUA replaces its archive irregularly; the Zenodo record is checked weekly | Términos de Libre Uso MX (data); CC BY 4.0 (archive docs) | **Built**: 2,146 wells and intakes, 732 hm³/year authorised. Volumes are what titles allow, not metered |
+| Water | Monitor de Sequía de México, municipal table (`MunicipiosSequia.xlsx`) | SMN / CONAGUA | every 15 days since 2003 | Twice a month; checked weekly | Términos de Libre Uso MX | **Built**: current level, since when, and a 3-year sparkline |
+| Water | Censo 2020 `VPH_TINACO`, `VPH_CISTER`, `VPH_AGUADV` | INEGI | 2020 | Decennial | INEGI Términos de libre uso | **Built**: map colour = % of homes with a tinaco |
+| Water (not built) | Dam levels (Abelardo L. Rodríguez, El Novillo) — SINA | CONAGUA | — | — | — | **Blocked for scripts** (Incapsula bot wall). Free alternative: water area seen by Sentinel-2 |
+| Water (not built) | Aquifer availability (DOF 9 Nov 2023) | CONAGUA / DOF | 2023 | Every few years | — | Not built: would need a small hand-made table in `pipeline/manual/` |
 | Work (HUD) | Formal jobs, IMSS | IMSS | monthly | Monthly | Datos abiertos IMSS | Not built (the HUD shows the DENUE business count instead) |
 
 ## How figures are handled
@@ -110,6 +115,30 @@ information, and showed values up to 540 %. The pipeline now stops if any share 
   e-mails, web sites and street addresses are not copied into the app.
 - Informal work (street stalls without a fixed place, work from home) is not in DENUE; the legend says so.
 - La Gaceta writes Chamba entries only when INEGI publishes a new edition (or the first time).
+
+## Agua rules
+
+- **Water rights** come from REPDA. `datos.conagua.gob.mx` answers scripts with a bot wall (Incapsula), so the
+  pipeline reads the newest release in the Zenodo record that preserves CONAGUA's own archives unmodified
+  (`repda_zenodo_record.json` is re-checked every 6 days; each `REPDA_YYYY-MM.zip` is cached for good). Don't
+  try to get past the bot wall; a hand-downloaded `pipeline/manual/REPDA_YYYY-MM.zip` is the fallback.
+- Points are wells (`ANEXOS_SUBTERRANEOS*`) and surface intakes (`ANEXOS_SUPERFICIALES*`) whose state/municipio
+  keys are 26/30. The 450 wells of Distrito de Riego 051 (Costa de Hermosillo) come from the `*_DTTOS` files and
+  belong to the users' association. 4 points without valid coordinates are counted but not drawn.
+- **Volumes are what each title authorises per year, not what is pumped.** Legend, card, ficha and Gaceta say so.
+  "Albercas olímpicas" = volume ÷ 2,500 m³, rounded.
+- **Uses**: AGRÍCOLA → campo; PÚBLICO URBANO → ciudad; INDUSTRIAL, AGROINDUSTRIAL, GENERACIÓN DE ENERGÍA → industria;
+  PECUARIO → ganado; everything else (DIFERENTES USOS, SERVICIOS, DOMÉSTICO…) → otros.
+- **Privacy**: a holder is named only if it looks like a company, ejido, association or public body
+  (`water.is_entity`: legal suffixes S.A., S.P.R., S. de R.L., A.C., SAPI…, or words like EJIDO, MUNICIPIO,
+  COMISIÓN, AGUA DE HERMOSILLO). Everyone else is "Particular" and their point is rounded to 3 decimals
+  (~100 m). Top-holder lists merge spellings of the same company (`water.holder_key`).
+- **Drought**: in the SMN table an empty cell means *sin sequía* (its NOTAS sheet says so), so it is level 0,
+  not missing. Levels: sin, D0 anormalmente seco, D1–D4 moderada → excepcional. Missing reports (Aug 2003,
+  Feb 2004) are simply absent columns.
+- **Colour** = % of homes with a tinaco (`VPH_TINACO / VIVPARH_CV`), six quantile classes. Cisterns are too rare
+  (median 2 %) to colour the map; they are shown in the ficha.
+- La Gaceta writes Agua entries when the drought level changes or a new REPDA release appears (or the first time).
 
 ## Known gaps
 

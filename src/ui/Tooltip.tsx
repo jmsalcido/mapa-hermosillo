@@ -21,6 +21,10 @@ export function Tooltip({ h, mode, tier, skin }: { h: HoverInfo; mode: ModeId; t
     stat = g ? <><b>{WEALTH_PLAIN[g - 1]}</b> (escuela, salud, servicios)</> : <>{t('no_data')}</>
   } else if (mode === 'work') {
     stat = a.j_n != null ? (a.j_n ? <><b>{fmt(a.j_n)}</b> {a.j_n === 1 ? 'negocio' : 'negocios'}, cerca de <b>{fmt(a.j_emp)}</b> empleos</> : <>Aquí no hay negocios registrados</>) : <>{t('no_data')}</>
+  } else if (mode === 'water') {
+    stat = a.p_tinaco != null
+      ? <><b>{fmt(a.p_tinaco)}%</b> de las casas tienen tinaco{a.a_n ? <>; aquí hay <b>{fmt(a.a_n)}</b> {a.a_n === 1 ? 'pozo' : 'pozos'} con permiso</> : null}</>
+      : <>{t('no_data')}</>
   } else if (mode === 'green') {
     stat = a.p_green != null ? <>Hoy se ve verde el <b>{fmt(a.p_green)}%</b> del barrio</> : <>{t('no_data')}</>
   } else if (mode === 'heat') {

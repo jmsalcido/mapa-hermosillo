@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { critterSVG, GROUP_INFO, GROUPS, type Group } from '../art/critters'
 import { treeSVG } from '../art/trees'
 import { WORK_GROUPS, WORK_INFO, workSVG, type WorkGroup } from '../art/work'
+import { WATER_INFO, WATER_USES, waterSVG, type WaterUse } from '../art/water'
 import type { CoreData } from '../data'
 import { fmt, t } from '../i18n'
-import { GREEN_PLAIN, GREEN_RAMP, GRS_RAMP, HEAT_RAMP, IMU_RAMP, NO_DATA, PEOPLE_RAMP, WILD_RAMP, WORK_PLAIN, WORK_RAMP, modeState, type ModeId } from '../modes'
+import { DROUGHT_PLAIN, DROUGHT_RAMP, GREEN_PLAIN, GREEN_RAMP, GRS_RAMP, HEAT_RAMP, IMU_RAMP, NO_DATA, PEOPLE_RAMP, WATER_RAMP, WILD_RAMP, WORK_PLAIN, WORK_RAMP, modeState, type ModeId } from '../modes'
 
 // Plain-language legends: written for people who have never used a map app like this.
 export const WEALTH_PLAIN = ['Le falta muy poco', 'Le falta poco', 'Regular', 'Le falta mucho', 'Le falta muchísimo']
@@ -14,6 +15,7 @@ const PLANNED: Record<string, { text: string; src: string }> = {
   green: { text: 'Qué tan verde está cada barrio, visto desde satélite.', src: 'Satélites Sentinel-2 (Copernicus) y ESA' },
   wildlife: { text: '', src: 'iNaturalist' },
   work: { text: 'Dónde están los negocios y las empresas grandes.', src: 'Directorio de negocios DENUE (INEGI)' },
+  water: { text: 'Quién tiene permiso para sacar agua, y si hay sequía.', src: 'CONAGUA (REPDA) y Monitor de Sequía (SMN)' },
 }
 
 interface Props {
@@ -24,9 +26,11 @@ interface Props {
   setGroups: (g: Set<Group>) => void
   workGroups: Set<WorkGroup>
   setWorkGroups: (g: Set<WorkGroup>) => void
+  waterUses: Set<WaterUse>
+  setWaterUses: (g: Set<WaterUse>) => void
 }
 
-export function Legend({ data, mode, wealthPrimary, groups, setGroups, workGroups, setWorkGroups }: Props) {
+export function Legend({ data, mode, wealthPrimary, groups, setGroups, workGroups, setWorkGroups, waterUses, setWaterUses }: Props) {
   const [open, setOpen] = useState(window.innerWidth > 760)
   const st = modeState(data.manifest, mode)
 
@@ -159,6 +163,62 @@ export function Legend({ data, mode, wealthPrimary, groups, setGroups, workGroup
       </>
     )
     source = `Directorio de negocios DENUE del INEGI, edición ${w.edition.slice(5)}/${w.edition.slice(0, 4)}`
+  } else if (mode === 'water' && st === 'ok' && data.stats.water) {
+    const { rights: r, drought: d } = data.stats.water
+    const b = data.stats.breaks.p_tinaco ?? []
+    const rows = WATER_RAMP.slice(0, b.length + 1).map((c, i) => ({
+      c, label: i === 0 ? `menos del ${fmt(b[0])}%` : i === b.length ? `${fmt(b[b.length - 1])}% o más` : `${fmt(b[i - 1])} a ${fmt(b[i])}%`,
+    }))
+    const toggle = (u: WaterUse) => {
+      const s = new Set(waterUses)
+      if (s.has(u)) s.delete(u)
+      else s.add(u)
+      setWaterUses(s.size ? s : new Set(WATER_USES))
+    }
+    const date = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
+    body = (
+      <>
+        {d && (
+          <div className="drought">
+            <p>
+              <b>¿Hay sequía?</b>{' '}
+              <span className={`pill${d.level >= 4 ? ' light' : ''}`} style={{ background: DROUGHT_RAMP[d.level] }}>{DROUGHT_PLAIN[d.level]}</span>
+              {' '}desde el {date(d.since)}.
+            </p>
+            <svg className="drought-spark" viewBox={`0 0 ${d.series.length * 4} 22`} preserveAspectRatio="none" role="img"
+              aria-label={`Sequía en Hermosillo cada 15 días desde ${date(d.series[0][0])}`}>
+              {d.series.map(([day, lv], i) => (
+                <rect key={day} x={i * 4} y={22 - 4 - lv * 3.6} width={3.2} height={4 + lv * 3.6} fill={DROUGHT_RAMP[lv]}>
+                  <title>{`${date(day)}: ${DROUGHT_PLAIN[lv]}`}</title>
+                </rect>
+              ))}
+            </svg>
+            <p className="legend-note">Cada rayita es un reporte (cada 15 días, desde {date(d.series[0][0])}). Más alta y más café, peor la sequía.</p>
+          </div>
+        )}
+        <p><b>¿Quién tiene el agua?</b> Cada dibujito es un pozo (redondo) o una toma de río o presa (cuadrada) con permiso de CONAGUA. Más grande, más agua al año.</p>
+        {r && (
+          <div className="chips" role="group" aria-label="Qué pozos mostrar">
+            {WATER_USES.map(u => (
+              <button key={u} className={`chip${waterUses.has(u) ? ' on' : ''}`} aria-pressed={waterUses.has(u)} onClick={() => toggle(u)}>
+                <span dangerouslySetInnerHTML={{ __html: waterSVG(u, 22, false) }} />
+                {WATER_INFO[u].name} <small>{fmt(r.uses[u] ?? 0, 1)} mill. m³</small>
+              </button>
+            ))}
+          </div>
+        )}
+        <p className="legend-sub">Color del barrio: cuántas casas tienen <b>tinaco</b> (Censo 2020). Donde el agua llega a ratos, la gente la guarda.</p>
+        <Swatches rows={[...rows, { c: NO_DATA, label: t('no_data') }]} />
+        {r && (
+          <p className="legend-note">
+            En todo el municipio hay permiso para sacar <b>{fmt(r.hm3)} millones de m³</b> al año. Es lo que permiten los títulos, no lo que se mide.
+            No mostramos nombres de personas: solo de empresas, ejidos y gobierno.
+          </p>
+        )}
+      </>
+    )
+    source = [r && `CONAGUA, Registro Público de Derechos de Agua (corte ${r.snapshot.slice(5)}/${r.snapshot.slice(0, 4)})`,
+      d && `Monitor de Sequía de México (SMN), ${date(d.date)}`, 'Censo 2020 del INEGI (tinacos)'].filter(Boolean).join(' · ')
   } else {
     const p = PLANNED[mode]
     body = <p className="legend-unavailable"><strong>{t('soon')}.</strong> {p.text}</p>

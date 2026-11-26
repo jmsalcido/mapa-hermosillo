@@ -5,6 +5,7 @@ description = "Downloads, cleans and aggregates open data for Hermosillo: The Li
 requires-python = ">=3.11"
 dependencies = [
   "numpy>=2.4.6",
+  "openpyxl>=3.1",
   "pillow>=13.0.0",
   "rasterio>=1.4.4",
   "shapely>=2.0",

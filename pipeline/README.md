@@ -20,9 +20,10 @@ Options:
 uv run --directory pipeline python -m hlm.run --skip blocks,streets   # faster: AGEBs, census, wealth, OSM, territorios
 uv run --directory pipeline python -m hlm.run --skip osm,wildlife     # no Overpass / iNaturalist calls (uses cached names)
 uv run --directory pipeline python -m hlm.run --skip blocks,streets,osm,wildlife,heat,green   # only Chamba
+uv run --directory pipeline python -m hlm.run --skip blocks,streets,osm,wildlife,heat,green,work   # only Agua
 ```
 
-Skipping `wildlife`, `heat`, `green` or `work` keeps that mode's numbers from the previous run (they are not
+Skipping `wildlife`, `heat`, `green`, `work` or `water` keeps that mode's numbers from the previous run (they are not
 blanked), and La Gaceta only writes entries for steps that actually ran.
 
 Downloads are cached in `pipeline/.cache/`; static sources are reused for years and OSM for 6 days.
@@ -43,6 +44,7 @@ Delete a cached file to force a fresh download. `HLM_CACHE` and `HLM_OUT` overri
 | `heat.png` | Summer ground-temperature picture (lon/lat bounds and °C range in `stats.json → heat.image`) |
 | `history.json`, `chronicle.json` | Weekly snapshots and La Gaceta entries |
 | `work.json` | DENUE businesses as compact rows `[lon, lat, group, size, name, SCIAN, alta]` plus the activity names (loaded the first time Chamba is opened) |
+| `water.json` | REPDA wells and intakes as compact rows `[lon, lat, kind, use, m³/year, aquifer, holder, year, district]` (holder `""` = private person; loaded the first time Agua is opened) |
 | `stats.json` | City totals, density class breaks and medians used by legends and descriptions |
 | `manifest.json` | Provenance and status of every source and layer |
 
@@ -58,6 +60,7 @@ Delete a cached file to force a fresh download. `HLM_CACHE` and `HLM_OUT` overri
 - `hlm/heat.py`: Landsat summer LST composite (cached in `.cache/heat_comp_*.npz`), per-AGEB means, `heat.png`; NASA POWER daily max
 - `hlm/green.py`: Sentinel-2 NDVI (now and a year ago), WorldCover tree cover (cached `.npy`), `trees.geojson`
 - `hlm/work.py`: INEGI DENUE (Sonora zip, municipio 030), per-AGEB business counts and estimated jobs, compact `work.json` points
+- `hlm/water.py`: CONAGUA REPDA (newest release from the Zenodo copy), privacy filter for holders, per-AGEB well counts, `water.json`; SMN drought monitor
 - `hlm/chronicle.py`: weekly snapshot (`history.json`) and La Gaceta entries (`chronicle.json`)
 - `hlm/realms.py`: k-means *territorios*, names, colours and brands
 - `hlm/run.py`: orchestration

@@ -46,6 +46,12 @@ const ICONS: Record<ModeId, React.ReactNode> = {
       <path d="M9 24c2-2 4-2 6 0M17 26c2-2 4-2 6 0" {...p} />
     </>
   ),
+  water: (
+    <>
+      <path d="M16 4c5 7 9 11.5 9 16a9 9 0 0 1-18 0c0-4.5 4-9 9-16z" {...p} fill={c} fillOpacity={0.18} />
+      <path d="M11.5 20.5a4.5 4.5 0 0 0 4 4.4" {...p} />
+    </>
+  ),
   work: (
     <>
       <path d="M4 27V15l6 4v-4l6 4v-4l6 4V7h5v20z" {...p} fill={c} fillOpacity={0.18} />

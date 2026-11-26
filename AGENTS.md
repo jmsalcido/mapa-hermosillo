@@ -41,7 +41,7 @@ Live: https://hermosillo-mapa-vivo.vinc-fdb.workers.dev
    and ask the owner before adding it; never sign up for or enable anything paid on your own.
    Today everything is free: public GitHub repo (unlimited Actions minutes, 10 GB cache), Cloudflare Workers
    static assets on the free plan (static requests are free and unlimited; 25 MiB per file, 20,000 files),
-   open data sources (INEGI, CONAPO, CONEVAL, OSM, iNaturalist, NASA POWER, Landsat, Sentinel-2, ESA
+   open data sources (INEGI, CONAPO, CONEVAL, CONAGUA REPDA via Zenodo, SMN drought monitor, OSM, iNaturalist, NASA POWER, Landsat, Sentinel-2, ESA
    WorldCover via the free Microsoft Planetary Computer), AWS Terrain Tiles, Google Fonts, GTM / GA4 standard.
    Things that would break this: making the repo private (Actions minutes become limited), Worker code that
    runs on every request (counts against the free daily limit), files over 25 MiB, paid map tiles or APIs.
@@ -80,12 +80,13 @@ pipeline/hlm/      Python pipeline (uv project in pipeline/)
   heat.py          Calor — Landsat summer LST composite + NASA POWER daily max
   green.py         Verde — Sentinel-2 NDVI (now vs a year ago) + ESA WorldCover trees
   work.py          Chamba — INEGI DENUE businesses, estimated jobs
+  water.py         Agua — CONAGUA REPDA water rights (Zenodo copy) + SMN drought monitor
   chronicle.py     La Gaceta: weekly snapshot (history.json) + entries (chronicle.json)
   run.py           orchestration, stats.json, manifest.json
 pipeline/manual/   hand-downloaded sources (trimmed CONAPO/CONEVAL CSVs are committed)
 public/data/       pipeline output served by the site (committed)
 src/
-  App.tsx          state: mode, selection, groups, cards; keyboard 1–7 / Esc
+  App.tsx          state: mode, selection, groups, cards; keyboard 1–8 / Esc
   data.ts          types for every data file + loadCore()
   modes.ts         mode list, colour ramps and MapLibre colour expressions
   i18n.ts          Spanish strings and number/date formatting (es-MX)
@@ -120,6 +121,10 @@ Follow the existing pattern (Fauna / Calor / Verde / Chamba are good templates):
   not `VIVPAR_HAB` (that produced 540 %). Empty homes use `TVIVPAR`.
 - **CONEVAL GRS has five grades**, not three.
 - **CONAPO / CONEVAL portals return 403 to scripts.** Don't try to bypass it; use `pipeline/manual/`.
+- **CONAGUA sites (datos.conagua, SINA, REPDA, SIGA) sit behind an Incapsula bot wall.** Don't bypass it: REPDA
+  comes from the Zenodo copy of CONAGUA's releases; dam levels are not available to scripts.
+- **SMN drought table: an empty cell means "sin sequía"**, not missing data.
+- **Mode bar on phones**: 8 modes fill a 375 px screen exactly; a 9th mode needs a new mobile layout.
 - **Planetary Computer SAS tokens** are per collection: `/api/sas/v1/token/landsat-c2-l2`, `sentinel-2-l2a`,
   `esa-worldcover`.
 - **Standalone SVGs must be valid XML** (e.g. no duplicate `stroke-width`) or `addImage` silently fails —
@@ -142,7 +147,7 @@ Repo secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, optional `PC_SDK_
 ## Analytics
 
 Google Tag Manager `GTM-M9MFZ7RP` in `index.html` (skipped on localhost) → GA4. Custom dataLayer events:
-`cambio_modo`, `abrir_barrio`, `ver_ficha_punto`, `cambio_estilo` (see `src/analytics.ts`).
+`cambio_modo`, `abrir_barrio`, `ver_ficha_punto` (tipo animal | negocio | pozo), `cambio_estilo` (see `src/analytics.ts`).
 
 ## Commits
 

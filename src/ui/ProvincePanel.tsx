@@ -10,6 +10,7 @@ import { critterSVG, GROUP_INFO, GROUPS } from '../art/critters'
 import { WEALTH_PLAIN } from './Legend'
 import { GREEN_PLAIN, greenClass, WORK_PLAIN, workClass } from '../modes'
 import { WORK_GROUPS, WORK_INFO, workSVG } from '../art/work'
+import { pools } from '../art/water'
 
 /** `typ` = the median barrio of Hermosillo (Sencillo skin only); drawn as a tick on the bar. */
 function Bar({ label, value, color = '#8c5a3c', typ }: { label: string; value: number | null; color?: string; typ?: number }) {
@@ -193,6 +194,28 @@ export function ProvincePanel({ data, ageb: a, realm: r, skin, onClose }: { data
           </>
         )}
 
+        {data.stats.water && (
+          <>
+            <h3>{t('m_water')}</h3>
+            {a.in_census && (
+              <>
+                <Bar label={t('water')} value={a.p_water} color="#2f6fa3" typ={typ('p_water')} />
+                <Bar label={t('tinaco')} value={a.p_tinaco ?? null} color="#2f6fa3" typ={typ('p_tinaco')} />
+                <Bar label={t('cister')} value={a.p_cister ?? null} color="#2f6fa3" typ={typ('p_cister')} />
+              </>
+            )}
+            {a.a_n != null && (
+              <p className="fauna-line">
+                {a.a_n === 0 ? 'No hay pozos ni tomas con permiso de CONAGUA dentro de este barrio.' : (
+                  <>Dentro del barrio hay <b>{fmt(a.a_n)}</b> {a.a_n === 1 ? 'pozo o toma' : 'pozos o tomas'} con permiso para
+                    sacar <b>{fmt(a.a_vol)} m³</b> al año{pools(a.a_vol ?? 0) >= 1 ? <> (como {fmt(pools(a.a_vol ?? 0))} albercas olímpicas)</> : null}.</>
+                )}
+              </p>
+            )}
+            <p className="wealth-note">Agua entubada, tinaco y cisterna: Censo 2020. Pozos: registro de CONAGUA (lo que permite cada título, no lo que se mide).</p>
+          </>
+        )}
+
         <h3>{t('wildlife')}</h3>
         {a.w_n == null ? (
           <p className="legend-note">{t('unavailable')}</p>
@@ -215,7 +238,7 @@ export function ProvincePanel({ data, ageb: a, realm: r, skin, onClose }: { data
 
         <p className="panel-sources">
           De dónde salen estos datos: Censo 2020 del INEGI (gente y casas), CONAPO y CONEVAL 2020 (qué tanto le falta a la gente),
-          iNaturalist (animales), satélites Landsat (calor), satélites Sentinel-2 y ESA WorldCover (verde), directorio de negocios DENUE del INEGI (chamba). Un “—” quiere decir que el INEGI guardó ese dato para proteger la privacidad de pocas familias.
+          iNaturalist (animales), satélites Landsat (calor), satélites Sentinel-2 y ESA WorldCover (verde), directorio de negocios DENUE del INEGI (chamba), registro de derechos de agua de CONAGUA (agua). Un “—” quiere decir que el INEGI guardó ese dato para proteger la privacidad de pocas familias.
           <br />Clave INEGI del barrio: {a.cvegeo}
         </p>
       </div>

@@ -10,7 +10,7 @@ import statistics
 
 from shapely.geometry import mapping
 
-from . import base, chronicle, coast, green, heat, osm, people, realms, wealth, wildlife, work
+from . import base, chronicle, coast, green, heat, osm, people, realms, wealth, water, wildlife, work
 from .common import OUT, Manifest, Provenance, round_coords, write_json
 
 
@@ -31,7 +31,8 @@ def quantile_breaks(values, n):
 CARRY = {"wildlife": (("wildlife",), lambda k: k.startswith("w_")),
          "heat": (("heat", "weather"), lambda k: k == "lst"),
          "green": (("green",), lambda k: k in ("ndvi", "p_green", "ndvi_ago", "p_tree")),
-         "work": (("work",), lambda k: k.startswith("j_"))}
+         "work": (("work",), lambda k: k.startswith("j_")),
+         "water": (("water",), lambda k: k in ("a_n", "a_vol"))}
 
 
 def _carry_over(agebs, skip):
@@ -56,7 +57,7 @@ def _carry_over(agebs, skip):
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument("--skip", default="", help="comma list: blocks,streets,osm,wildlife,heat,green,work")
+    ap.add_argument("--skip", default="", help="comma list: blocks,streets,osm,wildlife,heat,green,work,water")
     args = ap.parse_args(argv)
     skip = set(filter(None, args.skip.split(",")))
 
@@ -112,14 +113,20 @@ def main(argv=None):
         print("• work (INEGI DENUE)")
         jobs = work.build_work(m, agebs)
 
+    wat = {}
+    if "water" not in skip:
+        print("• water (CONAGUA REPDA + Monitor de Sequía)")
+        wat = water.build_water(m, agebs)
+
     # A skipped data step keeps last run's numbers instead of blanking its map mode.
     carried = _carry_over(agebs, skip)
-    fresh = (wild, lst, weather, veg, jobs)  # La Gaceta only reports what this run actually measured
+    fresh = (wild, lst, weather, veg, jobs, wat)  # La Gaceta only reports what this run actually measured
     wild = wild or carried.get("wildlife", {})
     lst = lst or carried.get("heat", {})
     weather = weather or carried.get("weather", {})
     veg = veg or carried.get("green", {})
     jobs = jobs or carried.get("work", {})
+    wat = wat or carried.get("water", {})
 
     print("• realms")
     loc_names = {k: v["name"] for k, v in totals.items() if k != "municipio" and "name" in v}
@@ -161,7 +168,7 @@ def main(argv=None):
             [s for s, ok in (("conapo_imu2020", have_imu), ("coneval_grs2020", have_grs)) if ok]
             or ["conapo_imu2020", "coneval_grs2020"],
             primary="imu" if have_imu else "grs" if have_grs else None)
-    for mode in ("heat", "green", "wildlife", "work"):
+    for mode in ("heat", "green", "wildlife", "work", "water"):
         m.layers.setdefault(mode, {"status": "not_built", "sources": []})
 
     city = totals.get("0001", {})
@@ -179,14 +186,16 @@ def main(argv=None):
             "ndvi": [round(x, 3) for x in statistics.quantiles([a["ndvi"] for a in agebs if a.get("ndvi") is not None], n=6)]
             if any(a.get("ndvi") is not None for a in agebs) else [],
             "j_dens": quantile_breaks([a["j_dens"] for a in agebs if a.get("j_dens")], 6),
+            "p_tinaco": [round(x, 1) for x in statistics.quantiles([a["p_tinaco"] for a in agebs if a.get("p_tinaco") is not None], n=6)],
         },
         "work": jobs or None,
+        "water": wat or None,
         "heat": lst or None,
         "green": veg or None,
         "weather": weather or None,
         "wildlife": wild or None,
         "ranges": {k: [min(vals), max(vals), round(statistics.median(vals), 1)] for k in
-                   ("dens", "school", "p_inet", "p_car", "p_young", "p_old", "occ")
+                   ("dens", "school", "p_inet", "p_car", "p_young", "p_old", "occ", "p_water", "p_tinaco", "p_cister")
                    if (vals := [a[k] for a in agebs if a.get(k) is not None])},
     }
     write_json(OUT / "stats.json", stats, compact=False)
@@ -198,8 +207,8 @@ def main(argv=None):
         print("• blocks")
         base.build_blocks(m, block_pop)
 
-    f_wild, f_lst, f_weather, f_veg, f_jobs = fresh
-    chronicle.update(f_wild, f_lst, f_weather, agebs, rs, f_veg, f_jobs)
+    f_wild, f_lst, f_weather, f_veg, f_jobs, f_wat = fresh
+    chronicle.update(f_wild, f_lst, f_weather, agebs, rs, f_veg, f_jobs, f_wat)
     write_json(OUT / "manifest.json", {"generated": m.generated, "sources": m.sources, "layers": m.layers},
                compact=False)
     print("done.")

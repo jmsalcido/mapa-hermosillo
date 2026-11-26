@@ -60,8 +60,9 @@ export interface Stats {
   localities: Record<string, { name: string; pop: number }>
   n_ageb: number
   n_ageb_without_census: number
-  breaks: { dens: number[]; w_n?: number[]; lst?: number[]; ndvi?: number[]; j_dens?: number[] }
+  breaks: { dens: number[]; w_n?: number[]; lst?: number[]; ndvi?: number[]; j_dens?: number[]; p_tinaco?: number[] }
   work?: WorkStats | null
+  water?: WaterStats | null
   green: GreenStats | null
   wildlife: WildStats | null
   heat: HeatStats | null
@@ -99,6 +100,8 @@ export interface Ageb {
   p_pc: number | null
   p_water: number | null
   p_drain: number | null
+  p_tinaco?: number | null
+  p_cister?: number | null
   p_nohealth: number | null
   p_empty: number | null
   p_employed: number | null
@@ -129,6 +132,8 @@ export interface Ageb {
   j_oficina?: number
   j_fabrica?: number
   j_escuela?: number
+  a_n?: number
+  a_vol?: number
 }
 
 /** INEGI DENUE summary for the municipio (see pipeline/hlm/work.py). */
@@ -142,6 +147,41 @@ export interface WorkStats {
   new_year: { year: string; total: number; groups: Record<string, number> }
   n_big: number
   jobs_mid: number[]
+}
+
+/** Agua: CONAGUA REPDA water rights + SMN drought monitor (see pipeline/hlm/water.py). */
+export interface WaterStats {
+  rights: {
+    snapshot: string // yyyy-mm of the REPDA release
+    last_registration: string
+    n: number
+    n_wells: number
+    n_intakes: number
+    hm3: number
+    uses: Record<string, number> // millions of m³ per year
+    aquifers: [string, number, number][] // name, points, hm³
+    top: [string, number][]
+    particular_hm3: number
+  } | null
+  drought: {
+    date: string
+    level: number // 0 sin sequía, 1 D0 … 5 D4
+    since: string
+    worst_year: number | null
+    worst_ever: [string, number]
+    series: [string, number][]
+  } | null
+}
+
+/** One well or surface intake from REPDA as drawn on the map. */
+export interface Well {
+  k: 0 | 1 // 0 pozo, 1 toma superficial
+  u: import('./art/water').WaterUse
+  v: number // m³ per year the title authorises
+  aq: string | null
+  h: string // holder; '' = private person (not named)
+  y: string // year the title was registered
+  d: 0 | 1 // inside the irrigation district
 }
 
 /** One business from DENUE as drawn on the map. */

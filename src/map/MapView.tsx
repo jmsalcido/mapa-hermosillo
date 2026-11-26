@@ -3,11 +3,12 @@ import maplibregl, { type Map as MLMap, type MapGeoJSONFeature } from 'maplibre-
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { baseStyle, PALETTES, SKIN_PAINT } from './style'
 import type { Skin } from '../skin'
-import { dataUrl, type Ageb, type Biz, type CoreData, type Realm, type Sighting } from '../data'
-import { blockPeopleColorExpr, greenColorExpr, heatColorExpr, peopleColorExpr, wealthColorExpr, wildlifeColorExpr, workColorExpr, type ModeId } from '../modes'
+import { dataUrl, type Ageb, type Biz, type CoreData, type Realm, type Sighting, type Well } from '../data'
+import { blockPeopleColorExpr, greenColorExpr, heatColorExpr, peopleColorExpr, waterColorExpr, wealthColorExpr, wildlifeColorExpr, workColorExpr, type ModeId } from '../modes'
 import { addCritterImages, critterSVG, type Group } from '../art/critters'
 import { addTreeImage } from '../art/trees'
 import { addWorkImages, WORK_GROUPS, type WorkGroup } from '../art/work'
+import { addWaterImages, WATER_USES, type WaterUse } from '../art/water'
 import { realmBannerSVG } from '../art/heraldry'
 import { realmLabel } from '../atlasNames'
 import { tokenMinZoom, tokenSVG } from '../art/tokens'
@@ -20,6 +21,7 @@ export interface SightingInfo {
   y: number
   s?: Sighting
   b?: Biz
+  well?: Well
   pinned: boolean
 }
 
@@ -41,10 +43,11 @@ interface Props {
   onTier: (t: Tier) => void
   groups: Set<Group>
   workGroups: Set<WorkGroup>
+  waterUses: Set<WaterUse>
   onSighting: (s: SightingInfo | null, explicit?: boolean) => void
 }
 
-const FILL_MODES: ModeId[] = ['realm', 'people', 'wealth', 'wildlife', 'heat', 'green', 'work']
+const FILL_MODES: ModeId[] = ['realm', 'people', 'wealth', 'wildlife', 'heat', 'green', 'work', 'water']
 // per-mode opacity at zoom 9 / 12 / 15 (multiplied by the crossfade weight)
 const OPACITY: Record<string, [number, number, number]> = {
   realm: [0.78, 0.5, 0.22],
@@ -54,14 +57,15 @@ const OPACITY: Record<string, [number, number, number]> = {
   heat: [0.88, 0.8, 0.3],
   green: [0.85, 0.75, 0.4],
   work: [0.88, 0.8, 0.35],
+  water: [0.85, 0.75, 0.35],
 }
 const opacityExpr = (m: string, k: number) =>
   ['interpolate', ['linear'], ['zoom'], 9, OPACITY[m][0] * k, 12, OPACITY[m][1] * k, 15, OPACITY[m][2] * k] as unknown as number
 
-export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, onSelect, onTier, groups, workGroups, onSighting }: Props) {
+export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, onSelect, onTier, groups, workGroups, waterUses, onSighting }: Props) {
   const el = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MLMap | null>(null)
-  const weights = useRef<Record<string, number>>({ realm: 1, people: 0, wealth: 0, wildlife: 0, heat: 0, green: 0, work: 0 })
+  const weights = useRef<Record<string, number>>({ realm: 1, people: 0, wealth: 0, wildlife: 0, heat: 0, green: 0, work: 0, water: 0 })
   const anim = useRef<number>(0)
   const banners = useRef<{ m: maplibregl.Marker; r: Realm }[]>([])
   const cb = useRef({ onHover, onSelect, onTier, onSighting })
@@ -77,6 +81,8 @@ export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, on
   groupsRef.current = groups
   const workGroupsRef = useRef(workGroups)
   workGroupsRef.current = workGroups
+  const waterUsesRef = useRef(waterUses)
+  waterUsesRef.current = waterUses
 
   // ---------- create map once ----------
   useEffect(() => {
@@ -114,6 +120,7 @@ export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, on
       map.addLayer({ id: 'fill-wildlife', type: 'fill', source: 'agebs', paint: { 'fill-color': wildlifeColorExpr(data.stats) as never, 'fill-opacity': 0 } }, before)
       map.addLayer({ id: 'fill-green', type: 'fill', source: 'agebs', paint: { 'fill-color': greenColorExpr(data.stats) as never, 'fill-opacity': 0 } }, before)
       map.addLayer({ id: 'fill-work', type: 'fill', source: 'agebs', paint: { 'fill-color': workColorExpr(data.stats) as never, 'fill-opacity': 0 } }, before)
+      map.addLayer({ id: 'fill-water', type: 'fill', source: 'agebs', paint: { 'fill-color': waterColorExpr(data.stats) as never, 'fill-opacity': 0 } }, before)
       map.addLayer({ id: 'fill-heat', type: 'fill', source: 'agebs', paint: { 'fill-color': heatColorExpr(data.stats) as never, 'fill-opacity': 0 } }, before)
       // satellite heat picture: shown close-up in Calor mode, under the barrio borders
       const img = data.stats.heat?.image
@@ -251,6 +258,7 @@ export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, on
       if (modeRef.current === 'wildlife') loadWildlife()
       if (modeRef.current === 'green') loadTrees()
       if (modeRef.current === 'work') loadWork()
+      if (modeRef.current === 'water') loadWater()
     })
 
     // lazy layers for the "block" tier
@@ -279,6 +287,47 @@ export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, on
     mapFns.current.loadWildlife = loadWildlife
     mapFns.current.loadTrees = loadTrees
     mapFns.current.loadWork = loadWork
+    mapFns.current.loadWater = loadWater
+    // REPDA wells and intakes are fetched the first time Agua is opened (compact rows → GeoJSON here)
+    let waterState: 'none' | 'loading' | 'ready' = 'none'
+    async function loadWater() {
+      if (waterState !== 'none' || !map.getLayer('fill-realm') || !data.stats.water?.rights) return
+      waterState = 'loading'
+      const r = await fetch(dataUrl('water.json')).catch(() => null)
+      const raw: { uses: WaterUse[]; aquifers: string[]; rows: [number, number, 0 | 1, number, number, number, string, string, 0 | 1][] } | null =
+        r && r.ok ? await r.json().catch(() => null) : null
+      if (!raw || mapRef.current !== map) {
+        waterState = 'none'
+        return
+      }
+      await addWaterImages(map)
+      const fc: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: raw.rows.map(([lon, lat, k, u, v, aq, h, y, d]) => ({
+          type: 'Feature', geometry: { type: 'Point', coordinates: [lon, lat] },
+          properties: { k, u: raw.uses[u], v, aq: aq >= 0 ? raw.aquifers[aq] : null, h, y, d },
+        })),
+      }
+      map.addSource('water-pts', { type: 'geojson', data: fc })
+      // size grows with the yearly volume; 1 million m³ or more shows from far away
+      const size = (k: number) => ['*', k, ['interpolate', ['linear'], ['ln', ['max', ['get', 'v'], 1000]], 6.9, 0.55, 13.8, 1, 18.4, 1.6]]
+      for (const [id, min, f] of [['water-big', 9, ['>=', ['get', 'v'], 1e6]], ['water-small', 12, ['<', ['get', 'v'], 1e6]]] as const) {
+        map.addLayer({
+          id, type: 'symbol', source: 'water-pts', minzoom: min, filter: f as never,
+          layout: {
+            'icon-image': ['concat', 'a-', ['get', 'u'], '-', ['to-string', ['get', 'k']]],
+            'icon-size': ['interpolate', ['linear'], ['zoom'], 9, size(0.22), 12, size(0.34), 15, size(0.6), 17, size(0.8)] as never,
+            'icon-allow-overlap': ['step', ['zoom'], false, 15, true],
+            'icon-padding': 0,
+            'symbol-sort-key': ['-', 0, ['get', 'v']],
+            visibility: 'none',
+          },
+          paint: { 'icon-opacity': ['interpolate', ['linear'], ['zoom'], min, 0, min + 0.6, 1] },
+        })
+      }
+      waterState = 'ready'
+      showWater()
+    }
     // DENUE businesses are fetched the first time Chamba is opened (compact rows → GeoJSON here)
     let workState: 'none' | 'loading' | 'ready' = 'none'
     async function loadWork() {
@@ -427,9 +476,13 @@ export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, on
       if (id) map.setFeatureState({ source: 'agebs', id }, { hover: true })
     }
     const pick = (pt: maplibregl.PointLike): MapGeoJSONFeature | undefined =>
-      !map.getLayer('fill-realm') ? undefined : map.queryRenderedFeatures(pt, { layers: ['fill-realm', 'fill-people', 'fill-wealth', 'fill-wildlife', 'fill-heat', 'fill-green', 'fill-work'] })[0]
-    const pickCritter = (pt: maplibregl.Point): Pick<SightingInfo, 's' | 'b'> | undefined => {
+      !map.getLayer('fill-realm') ? undefined : map.queryRenderedFeatures(pt, { layers: FILL_MODES.map(m => `fill-${m}`) })[0]
+    const pickCritter = (pt: maplibregl.Point): Pick<SightingInfo, 's' | 'b' | 'well'> | undefined => {
       const box: [maplibregl.PointLike, maplibregl.PointLike] = [[pt.x - 8, pt.y - 8], [pt.x + 8, pt.y + 8]]
+      if (modeRef.current === 'water' && map.getLayer('water-small')) {
+        const p = map.queryRenderedFeatures(box, { layers: ['water-big', 'water-small'] })[0]?.properties as Well | undefined
+        return p ? { well: { ...p, aq: (p.aq as unknown) === 'null' ? null : p.aq } } : undefined
+      }
       if (modeRef.current === 'work' && map.getLayer('work-pts')) {
         const p = map.queryRenderedFeatures(box, { layers: ['work-big', 'work-pts'] })[0]?.properties as Biz | undefined
         return p ? { b: { ...p, act: bizActs.current[p.c] } } : undefined
@@ -493,7 +546,7 @@ export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, on
   }, [data])
 
   // ---------- fauna visibility & group filter ----------
-  const mapFns = useRef<{ loadWildlife?: () => void; loadTrees?: () => void; loadWork?: () => void }>({})
+  const mapFns = useRef<{ loadWildlife?: () => void; loadTrees?: () => void; loadWork?: () => void; loadWater?: () => void }>({})
   const bizActs = useRef<Record<string, string>>({})
   function showWork() {
     const map = mapRef.current
@@ -509,6 +562,20 @@ export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, on
     showWork()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, workGroups])
+  function showWater() {
+    const map = mapRef.current
+    if (!map?.getLayer('water-small')) return
+    const us = [...waterUsesRef.current]
+    for (const [id, f] of [['water-big', ['>=', ['get', 'v'], 1e6]], ['water-small', ['<', ['get', 'v'], 1e6]]] as const) {
+      map.setLayoutProperty(id, 'visibility', modeRef.current === 'water' ? 'visible' : 'none')
+      map.setFilter(id, ['all', f, ['in', ['get', 'u'], ['literal', us.length ? us : WATER_USES]]] as never)
+    }
+  }
+  useEffect(() => {
+    if (mode === 'water') mapFns.current.loadWater?.()
+    showWater()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, waterUses])
   function showWildlife() {
     const map = mapRef.current
     if (!map?.getLayer('critters')) return
@@ -547,7 +614,7 @@ export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, on
   }
 
   useEffect(() => {
-    const target: Record<string, number> = { realm: 0, people: 0, wealth: 0, wildlife: 0, heat: 0, green: 0, work: 0 }
+    const target: Record<string, number> = { realm: 0, people: 0, wealth: 0, wildlife: 0, heat: 0, green: 0, work: 0, water: 0 }
     // modes without a fill of their own (not built yet) keep the realm map underneath, dimmed
     if (FILL_MODES.includes(mode)) target[mode] = 1
     else target.realm = 0.35

@@ -1,7 +1,7 @@
 import type { Key } from './i18n'
 import type { Manifest, Stats } from './data'
 
-export type ModeId = 'realm' | 'people' | 'wealth' | 'heat' | 'green' | 'wildlife' | 'work'
+export type ModeId = 'realm' | 'people' | 'wealth' | 'heat' | 'green' | 'wildlife' | 'work' | 'water'
 
 export const MODES: { id: ModeId; label: Key; hint: string }[] = [
   { id: 'realm', label: 'm_realm', hint: 'Los territorios de la ciudad' },
@@ -11,6 +11,7 @@ export const MODES: { id: ModeId; label: Key; hint: string }[] = [
   { id: 'green', label: 'm_green', hint: '¿Dónde hay más plantas y árboles?' },
   { id: 'wildlife', label: 'm_wildlife', hint: '¿Qué animales se han visto?' },
   { id: 'work', label: 'm_work', hint: '¿Dónde está la chamba?' },
+  { id: 'water', label: 'm_water', hint: '¿Quién tiene el agua?' },
 ]
 
 export type ModeState = 'ok' | 'unavailable' | 'soon'
@@ -96,3 +97,15 @@ export function workClass(stats: Stats, v: number | null | undefined): number | 
   if (v == null) return null
   return (stats.breaks.j_dens ?? []).filter(b => v >= b).length
 }
+
+// Agua: share of homes with a rooftop water tank (tinaco), Censo 2020. Sand → deep water blue,
+// monotonic lightness (CVD-safe). Wells and intakes (REPDA) are drawn on top as silhouettes.
+export const WATER_RAMP = ['#f1ecd6', '#cfe2ea', '#9fc8df', '#68a5cf', '#3b7cb6', '#1d528a']
+export function waterColorExpr(stats: Stats): unknown {
+  const b = stats.breaks.p_tinaco ?? []
+  return ['case', ['==', ['get', 'p_tinaco'], null], NO_DATA,
+    ['step', ['get', 'p_tinaco'], WATER_RAMP[0], ...b.flatMap((v, i) => [v, WATER_RAMP[Math.min(i + 1, WATER_RAMP.length - 1)]])]]
+}
+export const DROUGHT_PLAIN = ['Sin sequía', 'Anormalmente seco', 'Sequía moderada', 'Sequía severa', 'Sequía extrema', 'Sequía excepcional']
+// drought colours: pale → dark brown, monotonic lightness
+export const DROUGHT_RAMP = ['#d9e6d0', '#f3e3a1', '#e8bd73', '#cf8a4a', '#9c5530', '#5e2b1c']

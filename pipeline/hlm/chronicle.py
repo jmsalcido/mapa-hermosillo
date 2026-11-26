@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 from collections import Counter
 
 from .common import OUT, TODAY, write_json
@@ -108,20 +109,72 @@ def _work_entries(work, agebs, realms, prev_weeks, week_key):
     return out
 
 
+DROUGHT_ES = ["sin sequía", "anormalmente seco (todavía no es sequía)", "en sequía moderada", "en sequía severa",
+              "en sequía extrema", "en sequía excepcional"]
+USE_ES = {"agricola": "el campo", "urbano": "la ciudad (agua potable)", "industria": "la industria",
+          "ganado": "el ganado", "otros": "otros usos"}
+
+
+def _name(holder: str) -> str:
+    from .work import _title
+    t = _title(holder).replace("N° ", "n.º ")
+    return re.sub(r"\b(?:[A-Za-z]\.){2,}[A-Za-z]?\.?|\b[A-Za-z]\.\s?[A-Za-z]\.?$", lambda m: m.group(0).upper(), t)
+
+
+def _mx_date(iso: str) -> str:
+    d = dt.date.fromisoformat(iso)
+    return f"{d.day} de {MONTHS[d.month - 1]} de {d.year}"
+
+
+def _water_entries(water, prev_weeks, chron, week_key):
+    out = []
+    dr, rt = water.get("drought"), water.get("rights")
+    if dr:
+        last = next((w.get("drought_level") for w in reversed(prev_weeks) if w.get("drought_level") is not None), None)
+        if last != dr["level"] or not any(e.get("kind") == "water_drought" for e in chron["entries"]):
+            text = f"El Monitor de Sequía dice que Hermosillo está {DROUGHT_ES[dr['level']]} (reporte del {_mx_date(dr['date'])})."
+            if last is not None and last != dr["level"]:
+                text += " Antes estaba " + DROUGHT_ES[last].split(" (")[0] + "."
+            elif dr["since"] != dr["date"]:
+                text += f" Así sigue desde el {_mx_date(dr['since'])}."
+            out.append({"week": week_key, "date": TODAY, "kind": "water_drought", "title": "¿Hay sequía?",
+                        "es": text, "source": "Monitor de Sequía de México (SMN / CONAGUA)"})
+    if rt:
+        last = next((w.get("water_snapshot") for w in reversed(prev_weeks) if w.get("water_snapshot")), None)
+        if last != rt["snapshot"] or not any(e.get("kind") == "water" for e in chron["entries"]):
+            y, m = rt["snapshot"].split("-")
+            src = f"CONAGUA, Registro Público de Derechos de Agua (corte {MONTHS[int(m) - 1]} {y})"
+            tot = sum(rt["uses"].values()) or 1
+            u1, u2 = sorted(rt["uses"], key=lambda k: -rt["uses"][k])[:2]
+            out.append({"week": week_key, "date": TODAY, "kind": "water", "title": "¿Quién tiene el agua?",
+                        "es": f"En el municipio hay permiso para sacar {rt['hm3']:,.0f} millones de m³ de agua al año, de "
+                              f"{_fmt(rt['n'])} pozos y tomas. El {100 * rt['uses'][u1] / tot:.0f}% es para {USE_ES[u1]} y el "
+                              f"{100 * rt['uses'][u2] / tot:.0f}% para {USE_ES[u2]}.", "source": src})
+            if rt.get("top"):
+                (h1, v1), *rest = rt["top"]
+                text = f"Quien tiene permiso para más agua: {_name(h1)} ({v1:,.0f} millones de m³ al año)."
+                if rest:
+                    text += f" Le sigue {_name(rest[0][0])} ({rest[0][1]:,.1f} millones)."
+                out.append({"week": week_key, "date": TODAY, "kind": "water_top", "title": "Los que más agua pueden sacar",
+                            "es": text, "source": src})
+    return out
+
+
+
 def _keep(entries, new_entries, week_key):
     """Entries to keep when re-running a week: only the families just rewritten (wildlife, heat, green,
-    weather, work) are replaced, so a partial run never deletes the rest of this week's Gaceta."""
+    weather, work, water) are replaced, so a partial run never deletes the rest of this week's Gaceta."""
     fam = lambda e: e.get("kind", "").split("_")[0]  # noqa: E731
     redone = {fam(e) for e in new_entries}
     return [e for e in entries if not (e.get("week") == week_key and fam(e) in redone)]
 
 
 def update(wild: dict, heat: dict | None = None, weather: dict | None = None, agebs: list | None = None,
-           realms: list | None = None, green: dict | None = None, work: dict | None = None):
+           realms: list | None = None, green: dict | None = None, work: dict | None = None, water: dict | None = None):
     hist_path, chron_path = OUT / "history.json", OUT / "chronicle.json"
     history = json.loads(hist_path.read_text(encoding="utf-8")) if hist_path.exists() else {"weeks": []}
     chron = json.loads(chron_path.read_text(encoding="utf-8")) if chron_path.exists() else {"entries": []}
-    if not (wild or weather or green or work):
+    if not (wild or weather or green or work or water):
         return
     week_key = "%d-W%02d" % dt.date.fromisoformat(TODAY).isocalendar()[:2]
     same = next((w for w in history["weeks"] if w["week"] == week_key), {})
@@ -142,6 +195,12 @@ def update(wild: dict, heat: dict | None = None, weather: dict | None = None, ag
         last_ed = next((w.get("work_edition") for w in reversed(prev_weeks) if w.get("work_edition")), None)
         if last_ed != work["edition"] or not any(e.get("kind") == "work" for e in chron["entries"]):
             new_entries += _work_entries(work, agebs or [], realms or [], prev_weeks, week_key)
+    if water:
+        new_entries += _water_entries(water, prev_weeks, chron, week_key)
+        if water.get("drought"):
+            snap.update(drought_level=water["drought"]["level"], drought_date=water["drought"]["date"])
+        if water.get("rights"):
+            snap.update(water_snapshot=water["rights"]["snapshot"], water_hm3=water["rights"]["hm3"])
     weeks = sorted(prev_weeks + [snap], key=lambda w: w["week"])
     history["weeks"] = weeks[-104:]
     write_json(hist_path, history, compact=False)

@@ -308,6 +308,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .concho > svg:not(.concho-svg) { width: 19px; height: 19px; }
   .mode-btn { padding: 0 1px; }
   .mode-label { font-size: 9.5px; }
+  /* 8 modes must fit a 375 px phone: equal-width buttons, smaller conchos and labels */
+  .modebar { width: calc(100vw - 10px); padding: 7px 4px 4px; }
+  .mode-btn { flex: 1 1 0; min-width: 0; padding: 0; }
+  .concho { width: 38px; height: 38px; }
+  .concho > svg:not(.concho-svg) { width: 17px; height: 17px; }
+  .mode-label { font-size: 8.5px; letter-spacing: -.01em; white-space: nowrap; }
   .panel { top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 66vh; border-radius: 14px 14px 0 0; animation: sheet .35s ease-out; }
   .sheet-grip { display: block; position: absolute; top: 5px; left: 50%; transform: translateX(-50%); z-index: 2; width: 46px; height: 5px; border-radius: 3px; background: var(--papel-3); opacity: .8; }
   .panel-head { border-radius: 10px 10px 0 0; padding-top: 16px; }
@@ -554,7 +560,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   [data-skin='atlas'] .ledger { height: 56px; }
   [data-skin='atlas'] .chronicle, [data-skin='atlas'] .mode-banner { top: 64px; }
   [data-skin='atlas'] .crest-title { font-size: 16px; }
-  [data-skin='atlas'] .mode-label { font-size: 9.5px; letter-spacing: 0; }
+  [data-skin='atlas'] .mode-label { font-size: 8.5px; letter-spacing: -.02em; }
   .atlas-frame { inset: 62px 4px 30px 4px; }
   .atlas-compass { width: 70px; height: 70px; right: 10px; bottom: auto; top: 76px; }
 }
@@ -796,10 +802,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
   [data-skin='sencillo'] .ledger-note { top: 58px; }
   [data-skin='sencillo'] .chronicle, [data-skin='sencillo'] .mode-banner { top: 60px; }
   [data-skin='sencillo'] .modebar { padding: 4px; }
-  [data-skin='sencillo'] .mode-btn { padding: 5px 5px 4px; }
+  [data-skin='sencillo'] .mode-btn { padding: 5px 0 4px; }
   [data-skin='sencillo'] .concho { width: 22px; height: 22px; }
   [data-skin='sencillo'] .concho > svg:not(.concho-svg) { width: 19px; height: 19px; }
   [data-skin='sencillo'] .mode-label { font-size: 10px; }
   [data-skin='sencillo'] .panel { border-radius: 14px 14px 0 0; }
   [data-skin='sencillo'] .panel-head { border-radius: 14px 14px 0 0; padding-top: 16px; }
 }
+
+/* Agua: drought sparkline in the legend */
+.drought p:first-child { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.drought-spark { display: block; width: 100%; height: 26px; margin: 4px 0 2px; border-bottom: 1px solid var(--ink); }

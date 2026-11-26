@@ -3,6 +3,30 @@
     {
       "week": "2026-W48",
       "date": "2026-11-26",
+      "kind": "water_drought",
+      "title": "¿Hay sequía?",
+      "es": "El Monitor de Sequía dice que Hermosillo está sin sequía (reporte del 15 de noviembre de 2026). Así sigue desde el 15 de septiembre de 2026.",
+      "source": "Monitor de Sequía de México (SMN / CONAGUA)"
+    },
+    {
+      "week": "2026-W48",
+      "date": "2026-11-26",
+      "kind": "water",
+      "title": "¿Quién tiene el agua?",
+      "es": "En el municipio hay permiso para sacar 732 millones de m³ de agua al año, de 2,146 pozos y tomas. El 62% es para el campo y el 33% para la ciudad (agua potable).",
+      "source": "CONAGUA, Registro Público de Derechos de Agua (corte junio 2025)"
+    },
+    {
+      "week": "2026-W48",
+      "date": "2026-11-26",
+      "kind": "water_top",
+      "title": "Los que más agua pueden sacar",
+      "es": "Quien tiene permiso para más agua: Asociacion de Usuarios del Distrito de Riego n.º 051 Costa de Hermosillo, A.C. (321 millones de m³ al año). Le sigue Agua de Hermosillo (237.6 millones).",
+      "source": "CONAGUA, Registro Público de Derechos de Agua (corte junio 2025)"
+    },
+    {
+      "week": "2026-W48",
+      "date": "2026-11-26",
       "kind": "wildlife",
       "title": "Animales de la semana",
       "es": "Esta semana la gente reportó 17 animales en Hermosillo: 11 insectos y arañas, 4 aves y 2 mamíferos.",

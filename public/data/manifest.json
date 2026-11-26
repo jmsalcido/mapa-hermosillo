@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-26T16:32:11+00:00",
+  "generated": "2026-11-26T17:40:12+00:00",
   "sources": {
     "inegi_mg_ageb": {
       "id": "inegi_mg_ageb",
@@ -180,6 +180,30 @@
       "status": "ok",
       "notes": "Contorno aproximado de la costa (escala 1:10 millones).",
       "modeled": false
+    },
+    "conagua_repda": {
+      "id": "conagua_repda",
+      "name": "REPDA — Registro Público de Derechos de Agua",
+      "url": "https://zenodo.org/records/24183265",
+      "license": "Términos de Libre Uso MX (datos de CONAGUA); documentación del archivo CC BY 4.0",
+      "publisher": "CONAGUA (copia íntegra en Zenodo, Gómez-Arias y Moctezuma)",
+      "vintage": "corte 2025-06 (último registro 2025-06-11)",
+      "retrieved": "2026-11-26",
+      "status": "ok",
+      "notes": "2146 pozos y tomas en el municipio 030, 4 sin coordenadas válidas. Volúmenes = lo que autoriza cada título al año, no lo que se bombea. Personas físicas sin nombre y con ubicación redondeada.",
+      "modeled": false
+    },
+    "smn_sequia": {
+      "id": "smn_sequia",
+      "name": "Monitor de Sequía de México — tabla municipal",
+      "url": "https://smn.conagua.gob.mx/tools/RESOURCES/Monitor%20de%20Sequia%20en%20Mexico/MunicipiosSequia.xlsx",
+      "license": "Términos de Libre Uso MX",
+      "publisher": "SMN / CONAGUA",
+      "vintage": "al 2026-11-15",
+      "retrieved": "2026-11-26",
+      "status": "ok",
+      "notes": "Cada 15 días desde 2003. Celda vacía = sin sequía (según la hoja NOTAS del archivo).",
+      "modeled": false
     }
   },
   "layers": {
@@ -275,6 +299,14 @@
         "naturalearth_ocean"
       ],
       "count": 1
+    },
+    "water": {
+      "status": "ok",
+      "sources": [
+        "conagua_repda",
+        "smn_sequia",
+        "inegi_censo2020"
+      ]
     }
   }
 }

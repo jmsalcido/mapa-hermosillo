@@ -24,7 +24,7 @@ FIELDS = {
     "VIVTOT": "dwell", "TVIVPAR": "priv", "TVIVPARHAB": "homes", "VIVPARH_CV": "homes_cv",
     "VIVPAR_DES": "empty", "PROM_OCUP": "occ",
     "VPH_INTER": "h_inet", "VPH_AUTOM": "h_car", "VPH_PC": "h_pc",
-    "VPH_AGUADV": "h_water", "VPH_DRENAJ": "h_drain",
+    "VPH_AGUADV": "h_water", "VPH_DRENAJ": "h_drain", "VPH_TINACO": "h_tinaco", "VPH_CISTER": "h_cister",
 }
 
 
@@ -60,7 +60,7 @@ def load_census(manifest: Manifest):
     return ageb, blocks, totals
 
 
-PCT_FIELDS = ("p_young", "p_old", "p_inet", "p_car", "p_pc", "p_water", "p_drain", "p_nohealth", "p_empty",
+PCT_FIELDS = ("p_young", "p_old", "p_inet", "p_car", "p_pc", "p_water", "p_drain", "p_tinaco", "p_cister", "p_nohealth", "p_empty",
               "p_employed")
 
 
@@ -82,6 +82,7 @@ def derive(stats: dict, area_km2: float) -> dict:
         "p_young": pct("a0_14", "pop"), "p_old": pct("a65", "pop"),
         "p_inet": pct("h_inet", "homes_cv"), "p_car": pct("h_car", "homes_cv"), "p_pc": pct("h_pc", "homes_cv"),
         "p_water": pct("h_water", "homes_cv"), "p_drain": pct("h_drain", "homes_cv"),
+        "p_tinaco": pct("h_tinaco", "homes_cv"), "p_cister": pct("h_cister", "homes_cv"),
         "p_nohealth": pct("nohealth", "pop"), "p_empty": pct("empty", "priv"),
         "p_employed": pct("employed", "pea"),
     }
