@@ -1,0 +1,42 @@
+# --- Node / Vite ---
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+npm-debug.log*
+
+# --- Cloudflare ---
+.wrangler/
+.dev.vars
+
+# --- Python pipeline ---
+pipeline/.venv/
+# downloaded sources (census, DENUE, Landsat composites…); rebuilt by the pipeline
+pipeline/.cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# pipeline/manual/ holds hand-downloaded sources. Only the Hermosillo-trimmed CSVs are committed
+# (the weekly Action needs them because the portals block scripts); full national copies stay local.
+pipeline/manual/*
+!pipeline/manual/README.md
+!pipeline/manual/imu_2020.csv
+!pipeline/manual/grs_ageb_2020.csv
+
+# public/data/ IS committed: it is the site's data and the weekly Action updates it.
+
+# --- Secrets / local config ---
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+
+# --- OS / editors ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp

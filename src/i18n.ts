@@ -1,0 +1,78 @@
+// Interfaz solo en español de México, con vocabulario norteño.
+//   Territorio  = agrupación visual de AGEB (reino)
+//   Comarca     = territorio del anillo interior · Frontera = anillo exterior
+//   Barrio      = una AGEB urbana · Manzana = una manzana del INEGI
+
+export const T = {
+  title: 'Hermosillo',
+  subtitle: 'El Mapa Vivo',
+  // modos
+  m_realm: 'Territorio',
+  m_people: 'Gente',
+  m_wealth: 'Bienestar',
+  m_heat: 'Calor',
+  m_green: 'Verde',
+  m_wildlife: 'Fauna',
+  m_work: 'Chamba',
+  soon: 'Próximamente',
+  unavailable: 'Datos no disponibles',
+  // libro de cuentas (HUD)
+  l_pop: 'Población',
+  l_jobs: 'Empleos con IMSS',
+  l_temp: 'Calor de hoy',
+  l_wild: 'Animales esta semana',
+  l_refresh: 'Actualizado',
+  l_notyet: 'todavía no lo agregamos',
+  // ficha del barrio
+  barrio: 'Barrio',
+  inhabitants: 'habitantes',
+  per_km2: 'personas por km²',
+  area: 'Tamaño (km²)',
+  homes: 'Casas con gente',
+  occ: 'Personas por casa',
+  school: 'Años de escuela, en promedio',
+  ages: 'Edades',
+  a0_14: '0 a 14 años',
+  a15_64: '15 a 64 años',
+  a65: '65 y más',
+  homes_with: 'Hogares con…',
+  inet: 'Internet',
+  car: 'Troca o carro',
+  pc: 'Computadora',
+  water: 'Agua entubada',
+  drain: 'Drenaje',
+  people: 'Gente',
+  nohealth: 'Sin servicio médico',
+  employed: 'Con trabajo (de quienes trabajan o buscan)',
+  empty: 'Casas vacías',
+  wealth: 'Bienestar',
+  imu: 'Qué tanto le falta (CONAPO)',
+  grs: 'Qué tanto le falta (CONEVAL)',
+  no_census: 'Este barrio es nuevo: no existía en el Censo 2020, así que todavía no hay cifras.',
+  sources: 'Fuentes',
+  close: 'Cerrar',
+  realm_note: 'Los territorios y sus nombres son de este mapa; no son divisiones oficiales.',
+  portrait_note: 'Dibujo hecho a partir de cuánta gente vive aquí.',
+  chronicle: 'La Gaceta',
+  legend: 'Leyenda',
+  credits: 'Créditos de datos',
+  no_data: 'Sin datos',
+  loading: 'Desenrollando el mapa…',
+  load_error: 'No se pudo cargar el mapa. Intenta de nuevo en un rato.',
+  territory: 'Territorio',
+  click_hint: 'Haz clic para ver todo sobre este barrio',
+  census_2020: 'Censo 2020',
+  wildlife: 'Animales vistos aquí',
+} as const
+
+export type Key = keyof typeof T
+export const t = (k: Key) => T[k]
+
+export const fmt = (n: number | null | undefined, digits = 0) =>
+  n == null ? '—' : n.toLocaleString('es-MX', { maximumFractionDigits: digits })
+
+export const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
+
+/** "San Pedro o el Saucito (San Pedro el Saucito)" → "San Pedro o el Saucito" */
+export const shortName = (n: string | null) => (n ? n.replace(/\s*\(.*\)\s*$/, '') : null)

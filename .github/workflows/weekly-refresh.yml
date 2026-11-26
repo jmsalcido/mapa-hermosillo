@@ -1,0 +1,52 @@
+name: Weekly data refresh
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Restore static-source cache
+        uses: actions/cache@v4
+        with:
+          path: pipeline/.cache
+          key: hlm-sources-${{ hashFiles('pipeline/hlm/**') }}
+          restore-keys: hlm-sources-
+      # Fast-changing layers only. Static ones (census, marginalization, geometry) come from the cache.
+      # iNaturalist, NASA POWER, Sentinel-2 NDVI and the DENUE zip (re-downloaded when older than 6 days,
+      # so a new INEGI edition is picked up the week it is published) refresh on every run.
+      - name: Refresh weekly layers and write La Gaceta
+        run: |
+          rm -f pipeline/.cache/osm_*.json pipeline/.cache/inat_observations.json
+          uv run --directory pipeline python -m hlm.run --skip blocks,streets
+        env:
+          PC_SDK_SUBSCRIPTION_KEY: ${{ secrets.PC_SDK_SUBSCRIPTION_KEY }}
+      - name: Commit changed data
+        run: |
+          git config user.name "hlm-bot"
+          git config user.email "hlm-bot@users.noreply.github.com"
+          git add public/data
+          git diff --cached --quiet || git commit -m "data: weekly refresh $(date -u +%F)"
+          git push
+      # Publish to Cloudflare (Workers static assets, account "vinc"). Needs two repo secrets:
+      # CLOUDFLARE_API_TOKEN (template "Edit Cloudflare Workers") and CLOUDFLARE_ACCOUNT_ID.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Build and deploy the site
+        run: |
+          npm ci
+          npm run build
+          npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
