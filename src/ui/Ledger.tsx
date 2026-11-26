@@ -25,14 +25,9 @@ export function Ledger({ data, skin, setSkin }: { data: CoreData; skin: Skin; se
   const wx = data.manifest.sources.nasa_power?.status === 'ok' ? data.stats.weather : null
   return (
     <header className="ledger">
-      <div className="crest">
+      <div className="crest" title={skin === 'atlas' ? `${ATLAS_EPITHET.name}: “${ATLAS_EPITHET.gloss}” (nombre inventado)` : undefined}>
         <span className="crest-title">{t('title')}</span>
         <span className="crest-sub">{t('subtitle')}</span>
-        {skin === 'atlas' && (
-          <span className="crest-epithet" title={`${ATLAS_EPITHET.name}: “${ATLAS_EPITHET.gloss}” (nombre inventado)`}>
-            <span className="rune">{ATLAS_EPITHET.name}</span> · {ATLAS_EPITHET.gloss}
-          </span>
-        )}
       </div>
       <div className="ledger-items">
         <Item icon={<ModeIcon id="people" size={22} />} label={t('l_pop')} value={fmt(data.stats.municipio.pop)}

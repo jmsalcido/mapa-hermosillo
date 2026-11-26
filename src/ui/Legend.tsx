@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { critterSVG, GROUP_INFO, GROUPS, type Group } from '../art/critters'
 import { treeSVG } from '../art/trees'
 import { WORK_GROUPS, WORK_INFO, workSVG, type WorkGroup } from '../art/work'
@@ -165,8 +165,19 @@ export function Legend({ data, mode, wealthPrimary, groups, setGroups, workGroup
     source = p.src
   }
 
+  // publish the legend's height so La Gaceta / Los Anales can stop above it instead of overlapping
+  const ref = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const root = document.documentElement.style
+    const ro = new ResizeObserver(() => root.setProperty('--legend-h', `${Math.ceil(el.getBoundingClientRect().height)}px`))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
   return (
-    <aside className={`legend card${open ? '' : ' collapsed'}`} aria-label={t('legend')}>
+    <aside ref={ref} className={`legend card${open ? '' : ' collapsed'}`} aria-label={t('legend')}>
       <button className="card-head" onClick={() => setOpen(!open)} aria-expanded={open}>
         <span>{t(`m_${mode}`)}</span>
         <span className="chev" aria-hidden="true">{open ? '▾' : '▸'}</span>
