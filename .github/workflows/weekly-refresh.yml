@@ -8,6 +8,11 @@ on:
 permissions:
   contents: write
 
+# never two refreshes at once (a manual run while the Monday one is going)
+concurrency:
+  group: weekly-refresh
+  cancel-in-progress: false
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
@@ -17,11 +22,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - name: Restore static-source cache
-        uses: actions/cache@v4
+      # Restore the newest cache of downloaded sources; a fresh one is saved after the pipeline (even if a
+      # later step fails), so the slow first-time downloads happen only once.
+      - name: Restore source cache
+        uses: actions/cache/restore@v4
         with:
           path: pipeline/.cache
-          key: hlm-sources-${{ hashFiles('pipeline/hlm/**') }}
+          key: hlm-sources-${{ github.run_id }}
           restore-keys: hlm-sources-
       # Fast-changing layers only. Static ones (census, marginalization, geometry) come from the cache.
       # iNaturalist, NASA POWER, Sentinel-2 NDVI and the DENUE zip (re-downloaded when older than 6 days,
@@ -33,13 +40,26 @@ jobs:
         env:
           PC_SDK_SUBSCRIPTION_KEY: ${{ secrets.PC_SDK_SUBSCRIPTION_KEY }}
           PYTHONUNBUFFERED: "1"   # stream the pipeline's progress lines into the live log
+      - name: Save source cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: pipeline/.cache
+          key: hlm-sources-${{ github.run_id }}
+      # Someone may push to main while the pipeline runs: replay the data commit on top of the latest main.
+      # On a conflicting hunk the fresh data wins (-X theirs = the commit being replayed). Retries a few times.
       - name: Commit changed data
         run: |
           git config user.name "hlm-bot"
           git config user.email "hlm-bot@users.noreply.github.com"
           git add public/data
-          git diff --cached --quiet || git commit -m "data: weekly refresh $(date -u +%F)"
-          git push
+          git diff --cached --quiet && { echo "no data changes"; exit 0; }
+          git commit -m "data: weekly refresh $(date -u +%F)"
+          for i in 1 2 3; do
+            git pull --rebase -X theirs origin main && git push origin HEAD:main && exit 0
+            echo "push attempt $i failed; retrying"; sleep $((i * 10))
+          done
+          exit 1
       # Publish to Cloudflare (Workers static assets, account "vinc"). Needs two repo secrets:
       # CLOUDFLARE_API_TOKEN (template "Edit Cloudflare Workers") and CLOUDFLARE_ACCOUNT_ID.
       - uses: actions/setup-node@v4
