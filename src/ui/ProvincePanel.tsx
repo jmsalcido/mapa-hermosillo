@@ -11,23 +11,26 @@ import { WEALTH_PLAIN } from './Legend'
 import { GREEN_PLAIN, greenClass, WORK_PLAIN, workClass } from '../modes'
 import { WORK_GROUPS, WORK_INFO, workSVG } from '../art/work'
 
-function Bar({ label, value, color = '#8c5a3c' }: { label: string; value: number | null; color?: string }) {
+/** `typ` = the median barrio of Hermosillo (Sencillo skin only); drawn as a tick on the bar. */
+function Bar({ label, value, color = '#8c5a3c', typ }: { label: string; value: number | null; color?: string; typ?: number }) {
   return (
-    <div className="bar">
+    <div className="bar" title={typ != null ? `Barrio típico de Hermosillo: ${fmt(typ)}%` : undefined}>
       <span className="bar-label">{label}</span>
       <span className="bar-track">
         <span className="bar-fill" style={{ width: `${value ?? 0}%`, background: color }} />
+        {typ != null && <span className="bar-mark" style={{ left: `${typ}%` }} aria-hidden="true" />}
       </span>
       <span className="bar-val">{value == null ? '—' : `${fmt(value)}%`}</span>
     </div>
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, typ }: { label: string; value: string; typ?: string }) {
   return (
     <div className="stat">
       <span className="stat-val">{value}</span>
       <span className="stat-label">{label}</span>
+      {typ != null && <span className="stat-cmp">típico: {typ}</span>}
     </div>
   )
 }
@@ -39,7 +42,14 @@ export function ProvincePanel({ data, ageb: a, realm: r, skin, onClose }: { data
   const pct = (x: number | null, of: number | null) => (x != null && of ? (100 * x) / of : null)
   const src = data.manifest.sources
   const atlas = skin === 'atlas'
-  const L = realmLabel(r, atlas)
+  const plain = skin === 'sencillo'
+  const L = realmLabel(r, skin)
+  // Sencillo compares with the median barrio (already in stats.json); never shown when missing
+  const typ = (k: string): number | undefined => (plain ? data.stats.ranges[k]?.[2] : undefined)
+  const typS = (k: string, digits = 0) => {
+    const v = typ(k)
+    return v == null ? undefined : fmt(v, digits)
+  }
   const zone = L.zone
   const lsts = data.agebs.features.map(f => (f.properties as Ageb).lst).filter((x): x is number => x != null)
   const heatRank = a.lst == null || !lsts.length ? null : Math.round((100 * lsts.filter(x => x < a.lst!).length) / lsts.length)
@@ -52,18 +62,20 @@ export function ProvincePanel({ data, ageb: a, realm: r, skin, onClose }: { data
         <span className="panel-shield" dangerouslySetInnerHTML={{ __html: crestSVG(skin, r.color, r.charge, 44) }} />
         <div className="panel-titles">
           <h2>Barrio en {zone}</h2>
-          <p>{atlas ? <><span className="rune">{L.name}</span>, {atlasGloss(r.title)} · </> : L.sub ? `${L.sub} · ` : ''}barrio n.º {a.ageb}</p>
+          <p>{atlas ? <><span className="rune">{L.name}</span>, {atlasGloss(r.title)} · </> : L.sub ? `${L.sub} · ` : ''}{plain ? `${t('territory')}: ${L.zone} · ` : ''}barrio n.º {a.ageb}</p>
         </div>
         <button className="close" onClick={onClose} aria-label={t('close')}>✕</button>
       </header>
 
       <div className="panel-body">
-        <figure className="portrait-frame">
-          <Portrait seed={a.cvegeo} densityRank={rank} color={r.color} skin={skin} />
-          <figcaption>{t('portrait_note')}</figcaption>
-        </figure>
+        {!plain && (
+          <figure className="portrait-frame">
+            <Portrait seed={a.cvegeo} densityRank={rank} color={r.color} skin={skin} />
+            <figcaption>{t('portrait_note')}</figcaption>
+          </figure>
+        )}
 
-        <p className="description">“{describe(a, data.stats)}”</p>
+        <p className="description">{plain ? describe(a, data.stats) : `“${describe(a, data.stats)}”`}</p>
 
         {!a.in_census ? (
           <p className="legend-unavailable">{t('no_census')}</p>
@@ -72,20 +84,21 @@ export function ProvincePanel({ data, ageb: a, realm: r, skin, onClose }: { data
             <div className="stats-grid">
               <Stat label="personas viven aquí" value={fmt(a.pop)} />
               <Stat label={t('homes')} value={fmt(a.homes)} />
-              <Stat label={t('occ')} value={fmt(a.occ, 1)} />
-              <Stat label={t('school')} value={fmt(a.school, 1)} />
-              <Stat label={t('per_km2')} value={fmt(a.dens)} />
+              <Stat label={t('occ')} value={fmt(a.occ, 1)} typ={typS('occ', 1)} />
+              <Stat label={t('school')} value={fmt(a.school, 1)} typ={typS('school', 1)} />
+              <Stat label={t('per_km2')} value={fmt(a.dens)} typ={typS('dens')} />
               <Stat label={t('area')} value={fmt(a.area_km2, 2)} />
             </div>
+            {plain && <p className="wealth-note">«Típico» y la rayita en las barras = el barrio de en medio de Hermosillo: la mitad de los barrios está arriba y la mitad abajo.</p>}
 
             <h3>{t('ages')}</h3>
-            <Bar label={t('a0_14')} value={pct(a.a0_14, a.pop)} color="#c7962f" />
+            <Bar label={t('a0_14')} value={pct(a.a0_14, a.pop)} color="#c7962f" typ={typ('p_young')} />
             <Bar label={t('a15_64')} value={pct(a.a15_64, a.pop)} color="#c4672f" />
-            <Bar label={t('a65')} value={pct(a.a65, a.pop)} color="#7c3f6a" />
+            <Bar label={t('a65')} value={pct(a.a65, a.pop)} color="#7c3f6a" typ={typ('p_old')} />
 
             <h3>{t('homes_with')}</h3>
-            <Bar label={t('inet')} value={a.p_inet} color="#2f8a86" />
-            <Bar label={t('car')} value={a.p_car} color="#2f8a86" />
+            <Bar label={t('inet')} value={a.p_inet} color="#2f8a86" typ={typ('p_inet')} />
+            <Bar label={t('car')} value={a.p_car} color="#2f8a86" typ={typ('p_car')} />
             <Bar label={t('pc')} value={a.p_pc} color="#2f8a86" />
             <Bar label={t('water')} value={a.p_water} color="#35607f" />
             <Bar label={t('drain')} value={a.p_drain} color="#35607f" />
@@ -155,7 +168,7 @@ export function ProvincePanel({ data, ageb: a, realm: r, skin, onClose }: { data
 
         {data.stats.work && a.j_n != null && (
           <>
-            <h3>Chamba</h3>
+            <h3>{plain ? 'Empleo' : 'Chamba'}</h3>
             {a.j_n === 0 ? (
               <p className="legend-note">En el directorio de INEGI no hay negocios con local en este barrio.</p>
             ) : (

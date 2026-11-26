@@ -407,8 +407,9 @@ export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, on
       const sorted = [...banners.current].sort((a, b) => b.r.pop - a.r.pop)
       for (const { m, r } of sorted) {
         const p = map.project(r.label)
-        const w = Math.min(170, 30 + realmLabel(r, skinRef.current === 'atlas').name.length * 7.5)
-        const hit = placed.some(q => Math.abs(q.x - p.x) < (q.w + w) / 2 && Math.abs(q.y - p.y) < (skinRef.current === 'atlas' ? 76 : 62))
+        const sk = skinRef.current
+        const w = Math.min(170, 30 + realmLabel(r, sk).name.length * 7.5)
+        const hit = placed.some(q => Math.abs(q.x - p.x) < (q.w + w) / 2 && Math.abs(q.y - p.y) < (sk === 'atlas' ? 76 : sk === 'sencillo' ? 30 : 62))
         m.getElement().classList.toggle('collide', hit)
         if (!hit) placed.push({ x: p.x, y: p.y, w })
       }
@@ -582,7 +583,7 @@ export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, on
     const s = skinRef.current
     for (const { m, r } of banners.current) {
       const e = m.getElement()
-      const L = realmLabel(r, s === 'atlas')
+      const L = realmLabel(r, s)
       e.querySelector('.banner-art')!.innerHTML = realmBannerSVG(s, r.color, r.charge, s === 'atlas' ? 44 : 32)
       e.querySelector('.banner-name')!.textContent = L.name
       e.querySelector('.banner-title')!.textContent = L.sub

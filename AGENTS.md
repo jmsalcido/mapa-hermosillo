@@ -16,11 +16,15 @@ Live: https://hermosillo-mapa-vivo.vinc-fdb.workers.dev
    satélite"). Examples: Chamba jobs (DENUE size-range midpoints), NASA POWER temperature, NDVI trees.
 4. **UI language is Spanish (Mexico) only**, written in plain words for non-technical people. No English in the
    interface. Strings live in `src/i18n.ts` or inline JSX in Spanish.
-5. **Look: Norteño western** — leather, stitching, conchos, brass rivets, sarape stripe, cattle-brand (fierro)
+5. **Skins** (`src/skin.ts`, `?skin=sencillo|norteno|atlas`, HUD switch, saved in localStorage `hlm-estilo`).
+   **"Sencillo" is the default**: a plain, modern, easy-to-read look that puts the data first — white panels,
+   one sans-serif (Inter), one blue accent, light-grey base map, no ornaments (no clouds/vignette, shields,
+   banners or house drawing; territories are "Zonas" shown by their real place name with a colour dot), and the
+   ficha marks the median barrio ("típico") next to each number from `stats.ranges` (only when the value exists).
+   **Norteño western** (optional): leather, stitching, conchos, brass rivets, sarape stripe, cattle-brand (fierro)
    heraldry; fonts Rye / Zilla Slab / Alegreya. Inspired by that aesthetic; never copy any game's or artist's
    art, names, logos or likeness.
-   **Skins**: Norteño is the default; "Atlas antiguo" (`?skin=atlas`, HUD toggle, saved in localStorage
-   `hlm-estilo`) is an old hand-inked fantasy-atlas look (aged vellum, parchment panels inked in black and red,
+   "Atlas antiguo" (`?skin=atlas`) is an old hand-inked fantasy-atlas look (aged vellum, parchment panels inked in black and red,
    wax seals, crowned heater shields with ribbon names, compass rose, ripple lines along the sea; fonts Cinzel Decorative / IM Fell English / Uncial Antiqua). It is inspired by classic fantasy
    cartography in general: never use Tolkien's (or any book's or game's) names, languages, scripts or artwork.
    Its realm names are invented in `src/atlasNames.ts` (checked against a deny-list) and always shown with a
@@ -87,7 +91,7 @@ src/
   i18n.ts          Spanish strings and number/date formatting (es-MX)
   describe.ts      plain-language one-line description of a barrio
   analytics.ts     dataLayer events for Google Tag Manager
-  skin.ts          skin state (norteno | atlas): ?skin=, localStorage, <html data-skin>
+  skin.ts          skin state (sencillo | norteno | atlas): ?skin=, localStorage, <html data-skin>
   atlasNames.ts    invented realm names + Spanish glosses for the Atlas skin
   map/             MapView (layers, lazy loading, crossfade, interaction), base style
   art/             SVG art: heraldry, landmark tokens, critters, trees, business icons, portrait

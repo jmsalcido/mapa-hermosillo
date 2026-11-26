@@ -1,16 +1,17 @@
-// Skins: the same real data dressed two ways.
-//   norteno → leather, conchos and cattle brands (default)
+// Skins: the same real data dressed three ways.
+//   sencillo → plain, modern and easy to read: white panels, Inter, no ornaments (default)
+//   norteno  → leather, conchos and cattle brands
 //   atlas   → an old hand-inked fantasy atlas (parchment, wax seals, coats of arms).
 // Inspired by classic fantasy cartography in general; no names, words, scripts or art from any book or game.
 import { useEffect, useState } from 'react'
 
-export type Skin = 'norteno' | 'atlas'
-export const SKINS: Skin[] = ['norteno', 'atlas']
+export type Skin = 'sencillo' | 'norteno' | 'atlas'
+export const SKINS: Skin[] = ['sencillo', 'norteno', 'atlas']
 
 const KEY = 'hlm-estilo'
-const THEME: Record<Skin, string> = { norteno: '#2e1c10', atlas: '#2b2418' }
+const THEME: Record<Skin, string> = { sencillo: '#ffffff', norteno: '#2e1c10', atlas: '#2b2418' }
 
-const isSkin = (x: unknown): x is Skin => x === 'norteno' || x === 'atlas'
+const isSkin = (x: unknown): x is Skin => SKINS.includes(x as Skin)
 
 let current: Skin = readSkin()
 apply(current)
@@ -25,7 +26,7 @@ export function readSkin(): Skin {
   } catch {
     /* private mode etc. */
   }
-  return 'norteno'
+  return 'sencillo'
 }
 
 export const getSkin = () => current

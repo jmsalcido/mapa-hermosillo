@@ -22,7 +22,7 @@ export function ModeBar({ manifest, mode, setMode, skin }: { manifest: Manifest;
             title={`${m.hint}${sub ? ` (${sub.toLowerCase()})` : ''} · tecla ${i + 1}`}
           >
             <span className="concho">
-              {skin === 'atlas' ? <Seal /> : <Concho />}
+              {skin === 'atlas' ? <Seal /> : skin === 'norteno' ? <Concho /> : null}
               <ModeIcon id={m.id} />
               {st !== 'ok' && <span className="mode-lock"><LockIcon /></span>}
             </span>

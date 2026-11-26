@@ -67,6 +67,7 @@ export const T = {
   wildlife: 'Animales vistos aquí',
   // selector de estilo
   skin_label: 'Estilo del mapa',
+  skin_sencillo: 'Sencillo',
   skin_norteno: 'Norteño',
   skin_atlas: 'Atlas antiguo',
   welcome_go: '¡Órale, vamos!',
@@ -91,7 +92,22 @@ const T_ATLAS: Partial<Record<Key, string>> = {
   welcome_go: '¡Adelante!',
 }
 
-export const t = (k: Key): string => (getSkin() === 'atlas' ? T_ATLAS[k] ?? T[k] : T[k])
+/** Sencillo skin: plain, everyday words. Anything missing falls back to T. */
+const T_SENCILLO: Partial<Record<Key, string>> = {
+  m_realm: 'Zonas',
+  m_wildlife: 'Animales',
+  m_work: 'Empleo',
+  territory: 'Zona',
+  car: 'Auto',
+  chronicle: 'Novedades',
+  loading: 'Cargando el mapa…',
+  realm_note: 'Las zonas son grupos de barrios hechos para este mapa; no son divisiones oficiales.',
+  welcome_go: 'Empezar',
+}
+
+const BY_SKIN = { sencillo: T_SENCILLO, atlas: T_ATLAS, norteno: {} as Partial<Record<Key, string>> }
+
+export const t = (k: Key): string => BY_SKIN[getSkin()][k] ?? T[k]
 
 export const fmt = (n: number | null | undefined, digits = 0) =>
   n == null ? '—' : n.toLocaleString('es-MX', { maximumFractionDigits: digits })

@@ -1,3 +1,4 @@
+import type { Skin } from '../skin'
 // Fierros de herrar: each territory gets a hanging painted plank with its own cattle
 // brand burned in, in the style of a Sonoran ranch sign.
 
@@ -118,8 +119,12 @@ export function atlasShieldSVG(color: string, charge: string, size = 34): string
 </svg>`
 }
 
+/** Sencillo skin: just a round colour swatch, no heraldry. */
+export const dotSVG = (color: string, size = 14) =>
+  `<svg viewBox="0 0 20 20" width="${size}" height="${size}" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="${color}" stroke="#ffffff" stroke-width="2"/><circle cx="10" cy="10" r="9" fill="none" stroke="#3e4c59" stroke-opacity=".35" stroke-width="1"/></svg>`
+
 /** Pick the territory badge for the current skin. */
-export const crestSVG = (skin: 'norteno' | 'atlas', color: string, charge: string, size?: number) =>
-  skin === 'atlas' ? atlasShieldSVG(color, charge, size) : shieldSVG(color, charge, size)
-export const realmBannerSVG = (skin: 'norteno' | 'atlas', color: string, charge: string, size?: number) =>
-  skin === 'atlas' ? atlasBannerSVG(color, charge, size) : bannerSVG(color, charge, size)
+export const crestSVG = (skin: Skin, color: string, charge: string, size?: number) =>
+  skin === 'sencillo' ? dotSVG(color, Math.round((size ?? 34) * 0.5)) : skin === 'atlas' ? atlasShieldSVG(color, charge, size) : shieldSVG(color, charge, size)
+export const realmBannerSVG = (skin: Skin, color: string, charge: string, size?: number) =>
+  skin === 'sencillo' ? dotSVG(color, 12) : skin === 'atlas' ? atlasBannerSVG(color, charge, size) : bannerSVG(color, charge, size)

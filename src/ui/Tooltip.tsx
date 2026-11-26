@@ -10,7 +10,7 @@ export function Tooltip({ h, mode, tier, skin }: { h: HoverInfo; mode: ModeId; t
   const { ageb: a, realm: r } = h
   const zoneView = tier === 'realm'
   const atlas = skin === 'atlas'
-  const L = realmLabel(r, atlas)
+  const L = realmLabel(r, skin)
   const zone = L.zone
 
   let stat: React.ReactNode

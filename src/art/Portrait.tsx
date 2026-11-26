@@ -13,9 +13,9 @@ const PAL = {
   atlas: { sky0: '#d9d2b8', sky1: '#f3ecd6', sun: '#fbf6e6', hills: '#7f7a5e', ground: '#c9bd98', roof: '#4d3f2e' },
 }
 
-export function Portrait({ seed, densityRank, color, skin = 'norteno' }: { seed: string; densityRank: number | null; color: string; skin?: 'norteno' | 'atlas' }) {
+export function Portrait({ seed, densityRank, color, skin = 'norteno' }: { seed: string; densityRank: number | null; color: string; skin?: 'norteno' | 'atlas' | 'sencillo' }) {
   const r = rng(seed)
-  const P = PAL[skin]
+  const P = PAL[skin === 'sencillo' ? 'norteno' : skin]
   const n = densityRank == null ? 0 : 2 + Math.round(densityRank * 12) // 0..1 → 2..14 houses
   const houses = Array.from({ length: n }, (_, i) => {
     const w = 14 + r() * 10

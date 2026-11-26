@@ -6,6 +6,13 @@ export const INK = '#2a1d12'
 
 /** Every colour of the base map and our line layers, per skin (data ramps live in modes.ts and never change). */
 export const PALETTES = {
+  sencillo: {
+    // plain light-grey base so the data colours stand out
+    ink: '#3e4c59', shadow: '#9aa5b1', highlight: '#ffffff', accent: '#cbd2d9',
+    park: '#b7d7a8', parkEdge: '#7fa86e', riverbed: '#e4e7eb', river: '#5b8fb0', water: '#a8cbe0', waterEdge: '#5b8fb0',
+    road: '#ffffff', hover: '#1f2933', sel: '#2563eb',
+    sea: '#b9d6e6', seaEdge: '#5b8fb0', ripple: '#5b8fb0', rippleOpacity: 0,
+  },
   norteno: {
     ink: INK, shadow: '#6b4526', highlight: '#fff6df', accent: '#8a6038',
     park: '#8fa86a', parkEdge: '#4f6a3a', riverbed: '#e8d3a6', river: '#5f8fa8', water: '#7fa9b8', waterEdge: '#3c6476',
@@ -52,7 +59,7 @@ export const SKIN_PAINT: [string, string, keyof Palette][] = [
 ]
 
 /** Fully custom style: no basemap tiles, only our data + a DEM hillshade on parchment. */
-export function baseStyle(skin: Skin = 'norteno'): StyleSpecification {
+export function baseStyle(skin: Skin = 'sencillo'): StyleSpecification {
   const P = PALETTES[skin]
   return {
     version: 8,

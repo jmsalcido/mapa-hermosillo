@@ -3,6 +3,7 @@
 // The real neighbourhood name stays visible wherever it was before.
 import type { Realm } from './data'
 import { shortName } from './i18n'
+import type { Skin } from './skin'
 
 // Soft, flowing syllables (lots of vowels and liquids) so the names sound old and elvish-ish,
 // but every piece is ours: combinations are checked against the deny-lists below.
@@ -57,6 +58,16 @@ export function atlasGloss(title: string): string {
     .replace(/^El Corazón/, 'La Ciudadela')
 }
 
+/** Sencillo: everyday words for the generated titles. "Comarca del Poniente" → "Poniente",
+ *  "Frontera del Sur" → "Afueras del Sur", "El Corazón" → "Centro", "Pueblo de Kino" → "Kino". */
+export function plainTitle(title: string): string {
+  return title
+    .replace(/^Comarca del? /, '')
+    .replace(/^Frontera /, 'Afueras ')
+    .replace(/^El Corazón/, 'Centro')
+    .replace(/^Pueblo de /, '')
+}
+
 export interface RealmLabel {
   /** big name on the banner */
   name: string
@@ -66,10 +77,15 @@ export interface RealmLabel {
   zone: string
 }
 
-/** How a territory is named in each skin. Norteño keeps exactly the old behaviour. */
-export function realmLabel(r: Realm, atlas: boolean): RealmLabel {
+/** How a territory is named in each skin. */
+export function realmLabel(r: Realm, skin: Skin): RealmLabel {
   const real = shortName(r.name)
-  if (!atlas) return { name: real ?? r.title, sub: real ? r.title : '', zone: real ?? r.title }
+  // Sencillo: only the real place name, no invented titles
+  if (skin === 'sencillo') {
+    const name = real ?? plainTitle(r.title)
+    return { name, sub: '', zone: name }
+  }
+  if (skin === 'norteno') return { name: real ?? r.title, sub: real ? r.title : '', zone: real ?? r.title }
   const gloss = atlasGloss(r.title)
   // towns already carry their real name in the gloss ("Aldea de Bahía de Kino")
   const sub = real && !r.id.startsWith('L') ? `${gloss} · ${real}` : gloss
