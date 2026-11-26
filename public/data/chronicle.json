@@ -3,6 +3,22 @@
     {
       "week": "2026-W48",
       "date": "2026-11-26",
+      "kind": "wildlife",
+      "title": "Animales de la semana",
+      "es": "Esta semana la gente reportó 17 animales en Hermosillo: 11 insectos y arañas, 4 aves y 2 mamíferos.",
+      "source": "iNaturalist"
+    },
+    {
+      "week": "2026-W48",
+      "date": "2026-11-26",
+      "kind": "green_year",
+      "title": "¿Qué tan verde está la ciudad?",
+      "es": "La ciudad está 4% más verde que en estas mismas fechas del año pasado. Donde más bajó: Balderrama (-2%). Donde más subió: Frontera del Poniente (+16%).",
+      "source": "Satélites Sentinel-2 (Copernicus)"
+    },
+    {
+      "week": "2026-W48",
+      "date": "2026-11-26",
       "kind": "work",
       "title": "La chamba en Hermosillo",
       "es": "Según el directorio de negocios de INEGI, en el municipio hay 39,145 lugares de chamba. Lo que más hay: tiendas y comercios (13,715).",
@@ -23,22 +39,6 @@
       "title": "Donde más se chambea",
       "es": "Balderrama es la zona con más trabajo: cerca de 71,000 empleos (calculado con el tamaño de cada negocio).",
       "source": "INEGI, directorio de negocios (DENUE 2026-11)"
-    },
-    {
-      "week": "2026-W48",
-      "date": "2026-11-26",
-      "kind": "wildlife",
-      "title": "Animales de la semana",
-      "es": "Esta semana la gente reportó 17 animales en Hermosillo: 11 insectos y arañas, 4 aves y 2 mamíferos.",
-      "source": "iNaturalist"
-    },
-    {
-      "week": "2026-W48",
-      "date": "2026-11-26",
-      "kind": "green_year",
-      "title": "¿Qué tan verde está la ciudad?",
-      "es": "La ciudad está 4% más verde que en estas mismas fechas del año pasado. Donde más bajó: Balderrama (-2%). Donde más subió: Frontera del Poniente (+17%).",
-      "source": "Satélites Sentinel-2 (Copernicus)"
     },
     {
       "week": "2026-W48",
