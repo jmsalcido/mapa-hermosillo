@@ -117,6 +117,8 @@ export interface Ageb {
   w_otr?: number | null
   w_top?: string | null
   lst?: number | null
+  /** colonias in this AGEB (derived from DENUE, approximate), most businesses first */
+  col?: string[] | null
   ndvi?: number | null
   p_green?: number | null
   ndvi_ago?: number | null
@@ -256,5 +258,13 @@ export async function loadCore(): Promise<CoreData> {
   if (!manifest || !stats || !realms || !agebs) throw new Error('core data missing — run the pipeline')
   return { manifest, stats, realms, agebs, chronicle }
 }
+
+/** colonias.json: colonia name, type and the AGEBs it falls in (most businesses first) */
+export interface Colonias {
+  edition: string
+  c: { n: string; t: string; a: string[] }[]
+}
+
+export const loadColonias = () => getJSON<Colonias>('colonias.json')
 
 export const dataUrl = (name: string) => new URL(BASE + name, window.location.href).toString()

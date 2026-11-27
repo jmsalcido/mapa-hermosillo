@@ -17,6 +17,7 @@ import { Legend } from './ui/Legend'
 import { ModeBar } from './ui/ModeBar'
 import { ProvincePanel } from './ui/ProvincePanel'
 import { Tooltip } from './ui/Tooltip'
+import { Search, type SearchPick } from './ui/Search'
 import { AtlasOverlay } from './art/AtlasOverlay'
 
 export default function App() {
@@ -48,6 +49,12 @@ function Game({ data }: { data: CoreData }) {
   const [workGroups, setWorkGroups] = useState<Set<WorkGroup>>(() => new Set(WORK_GROUPS))
   const [waterUses, setWaterUses] = useState<Set<WaterUse>>(() => new Set(WATER_USES))
   const [sighting, setSighting] = useState<SightingInfo | null>(null)
+  const [focus, setFocus] = useState<{ cvegeos: string[]; n: number } | null>(null)
+  const onPick = (p: SearchPick) => {
+    setFocus(f => ({ cvegeos: p.cvegeos, n: (f?.n ?? 0) + 1 }))
+    setSighting(null)
+    setSelected(p.select)
+  }
   // a pinned card (clicked) survives hover-out; only an explicit map click or ✕ clears it
   const showSighting = (next: SightingInfo | null, explicit = false) =>
     setSighting(cur => (next ? (next.pinned || !cur?.pinned ? next : cur) : explicit || !cur?.pinned ? null : cur))
@@ -117,6 +124,7 @@ function Game({ data }: { data: CoreData }) {
         workGroups={workGroups}
         waterUses={waterUses}
         onSighting={showSighting}
+        focus={focus}
       />
       <div className="fx-clouds" aria-hidden="true">
         <span /><span /><span />
@@ -132,6 +140,7 @@ function Game({ data }: { data: CoreData }) {
 
       <Ledger data={data} skin={skin} setSkin={setSkin} />
       <Chronicle data={data} />
+      <Search data={data} skin={skin} onPick={onPick} />
       {st !== 'ok' && (
         <div className="mode-banner card" role="status">
           <strong>{t(`m_${mode}`)}</strong> — {st === 'soon' ? t('soon') : t('unavailable')}

@@ -45,7 +45,7 @@ export function Tooltip({ h, mode, tier, skin }: { h: HoverInfo; mode: ModeId; t
         <span dangerouslySetInnerHTML={{ __html: crestSVG(skin, r.color, r.charge, 26) }} />
         <div>
           <div className="tt-title">{zoneView ? (atlas ? <span className="rune">{L.name}</span> : zone) : `Barrio en ${zone}`}</div>
-          <div className="tt-sub">{zoneView ? L.sub : `n.º ${a.ageb}`}</div>
+          <div className="tt-sub">{zoneView ? L.sub : a.col?.length ? `${a.col[0]} · n.º ${a.ageb}` : `n.º ${a.ageb}`}</div>
         </div>
       </div>
       <div className="tt-stat">{stat}</div>

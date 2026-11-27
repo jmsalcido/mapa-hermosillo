@@ -10,7 +10,7 @@ import statistics
 
 from shapely.geometry import mapping
 
-from . import base, chronicle, coast, green, heat, osm, people, realms, wealth, water, wildlife, work
+from . import base, chronicle, coast, green, heat, names, osm, people, realms, wealth, water, wildlife, work
 from .common import OUT, Manifest, Provenance, round_coords, write_json
 
 
@@ -32,7 +32,8 @@ CARRY = {"wildlife": (("wildlife",), lambda k: k.startswith("w_")),
          "heat": (("heat", "weather"), lambda k: k == "lst"),
          "green": (("green",), lambda k: k in ("ndvi", "p_green", "ndvi_ago", "p_tree")),
          "work": (("work",), lambda k: k.startswith("j_")),
-         "water": (("water",), lambda k: k in ("a_n", "a_vol"))}
+         "water": (("water",), lambda k: k in ("a_n", "a_vol")),
+         "names": ((), lambda k: k == "col")}  # colonias.json itself is simply left in place
 
 
 def _carry_over(agebs, skip):
@@ -57,7 +58,7 @@ def _carry_over(agebs, skip):
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument("--skip", default="", help="comma list: blocks,streets,osm,wildlife,heat,green,work,water")
+    ap.add_argument("--skip", default="", help="comma list: blocks,streets,osm,wildlife,heat,green,work,water,names")
     args = ap.parse_args(argv)
     skip = set(filter(None, args.skip.split(",")))
 
@@ -118,6 +119,10 @@ def main(argv=None):
         print("• water (CONAGUA REPDA + Monitor de Sequía)")
         wat = water.build_water(m, agebs)
 
+    if "names" not in skip:
+        print("• colonias (INEGI DENUE + catálogo de asentamientos)")
+        names.build_names(m, agebs)
+
     # A skipped data step keeps last run's numbers instead of blanking its map mode.
     carried = _carry_over(agebs, skip)
     fresh = (wild, lst, weather, veg, jobs, wat)  # La Gaceta only reports what this run actually measured
@@ -168,7 +173,7 @@ def main(argv=None):
             [s for s, ok in (("conapo_imu2020", have_imu), ("coneval_grs2020", have_grs)) if ok]
             or ["conapo_imu2020", "coneval_grs2020"],
             primary="imu" if have_imu else "grs" if have_grs else None)
-    for mode in ("heat", "green", "wildlife", "work", "water"):
+    for mode in ("heat", "green", "wildlife", "work", "water", "names"):
         m.layers.setdefault(mode, {"status": "not_built", "sources": []})
 
     city = totals.get("0001", {})

@@ -45,6 +45,19 @@ interface Props {
   workGroups: Set<WorkGroup>
   waterUses: Set<WaterUse>
   onSighting: (s: SightingInfo | null, explicit?: boolean) => void
+  /** fit the map to these barrios (search); `n` changes on every request */
+  focus: { cvegeos: string[]; n: number } | null
+}
+
+/** bounds of a set of AGEB features */
+function agebBounds(feats: GeoJSON.Feature[]) {
+  const b = new maplibregl.LngLatBounds()
+  for (const f of feats) {
+    const g = f.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon
+    const polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates
+    for (const p of polys) for (const c of p[0]) b.extend(c as [number, number])
+  }
+  return b
 }
 
 const FILL_MODES: ModeId[] = ['realm', 'people', 'wealth', 'wildlife', 'heat', 'green', 'work', 'water']
@@ -62,7 +75,7 @@ const OPACITY: Record<string, [number, number, number]> = {
 const opacityExpr = (m: string, k: number) =>
   ['interpolate', ['linear'], ['zoom'], 9, OPACITY[m][0] * k, 12, OPACITY[m][1] * k, 15, OPACITY[m][2] * k] as unknown as number
 
-export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, onSelect, onTier, groups, workGroups, waterUses, onSighting }: Props) {
+export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, onSelect, onTier, groups, workGroups, waterUses, onSighting, focus }: Props) {
   const el = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MLMap | null>(null)
   const weights = useRef<Record<string, number>>({ realm: 1, people: 0, wealth: 0, wildlife: 0, heat: 0, green: 0, work: 0, water: 0 })
@@ -210,13 +223,7 @@ export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, on
         div.innerHTML = `<span class="banner-art"></span><div class="banner-name"></div><div class="banner-title"></div>`
         div.addEventListener('click', e => {
           e.stopPropagation()
-          const ag = data.agebs.features.filter(f => (f.properties as Ageb).realm === r.id)
-          const b = new maplibregl.LngLatBounds()
-          for (const f of ag) {
-            const g = f.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon
-            const polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates
-            for (const p of polys) for (const c of p[0]) b.extend(c as [number, number])
-          }
+          const b = agebBounds(data.agebs.features.filter(f => (f.properties as Ageb).realm === r.id))
           map.fitBounds(b, { padding: 60, duration: 1400, maxZoom: 13.2 })
         })
         const m = new maplibregl.Marker({ element: div, anchor: 'bottom' }).setLngLat(r.label).addTo(map)
@@ -637,6 +644,18 @@ export function MapView({ data, mode, skin, wealthPrimary, selected, onHover, on
     const map = mapRef.current
     if (map?.getLayer('fill-wealth')) map.setPaintProperty('fill-wealth', 'fill-color', wealthColorExpr(wealthPrimary) as never)
   }, [wealthPrimary])
+
+  // search: fly to the barrios of a colonia / town / zone, leaving room for the ficha on wide screens
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !focus?.cvegeos.length) return
+    const want = new Set(focus.cvegeos)
+    const b = agebBounds(data.agebs.features.filter(f => want.has((f.properties as Ageb).cvegeo)))
+    if (b.isEmpty()) return
+    const wide = window.innerWidth > 760
+    const padding = wide ? { top: 140, bottom: 130, left: 60, right: 420 } : { top: 80, bottom: Math.round(window.innerHeight * 0.55), left: 30, right: 30 }
+    map.fitBounds(b, { padding, duration: 1400, maxZoom: 15 })
+  }, [focus, data])
 
   useEffect(() => {
     const map = mapRef.current

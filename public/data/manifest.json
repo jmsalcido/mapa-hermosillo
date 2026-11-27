@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-26T17:40:12+00:00",
+  "generated": "2026-11-27T00:03:20+00:00",
   "sources": {
     "inegi_mg_ageb": {
       "id": "inegi_mg_ageb",
@@ -204,6 +204,18 @@
       "status": "ok",
       "notes": "Cada 15 días desde 2003. Celda vacía = sin sequía (según la hoja NOTAS del archivo).",
       "modeled": false
+    },
+    "inegi_asentamientos": {
+      "id": "inegi_asentamientos",
+      "name": "Catálogo de asentamientos humanos (colonias)",
+      "url": "https://gaia.inegi.org.mx/wscatgeo/v2/asentamientos/26/030",
+      "license": "Términos de Libre Uso de la Información del INEGI",
+      "publisher": "INEGI",
+      "vintage": "11/2025",
+      "retrieved": "2026-11-26",
+      "status": "ok",
+      "notes": "Official colonia names and types (no shapes); used only to write names.",
+      "modeled": false
     }
   },
   "layers": {
@@ -306,6 +318,13 @@
         "conagua_repda",
         "smn_sequia",
         "inegi_censo2020"
+      ]
+    },
+    "names": {
+      "status": "ok",
+      "sources": [
+        "inegi_denue",
+        "inegi_asentamientos"
       ]
     }
   }

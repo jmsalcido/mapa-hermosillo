@@ -61,6 +61,7 @@ Delete a cached file to force a fresh download. `HLM_CACHE` and `HLM_OUT` overri
 - `hlm/green.py`: Sentinel-2 NDVI (now and a year ago), WorldCover tree cover (cached `.npy`), `trees.geojson`
 - `hlm/work.py`: INEGI DENUE (Sonora zip, municipio 030), per-AGEB business counts and estimated jobs, compact `work.json` points
 - `hlm/water.py`: CONAGUA REPDA (newest release from the Zenodo copy), privacy filter for holders, per-AGEB well counts, `water.json`; SMN drought monitor
+- `hlm/names.py`: colonia names per AGEB from DENUE (`NOMB_ASENT` + AGEB keys), spelled as in INEGI's catálogo de asentamientos; `colonias.json` for the search box
 - `hlm/chronicle.py`: weekly snapshot (`history.json`) and La Gaceta entries (`chronicle.json`)
 - `hlm/realms.py`: k-means *territorios*, names, colours and brands
 - `hlm/run.py`: orchestration

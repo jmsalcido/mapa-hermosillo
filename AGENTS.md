@@ -81,6 +81,7 @@ pipeline/hlm/      Python pipeline (uv project in pipeline/)
   green.py         Verde — Sentinel-2 NDVI (now vs a year ago) + ESA WorldCover trees
   work.py          Chamba — INEGI DENUE businesses, estimated jobs
   water.py         Agua — CONAGUA REPDA water rights (Zenodo copy) + SMN drought monitor
+  names.py         colonias per AGEB for the search box (DENUE + INEGI catálogo de asentamientos; derived)
   chronicle.py     La Gaceta: weekly snapshot (history.json) + entries (chronicle.json)
   run.py           orchestration, stats.json, manifest.json
 pipeline/manual/   hand-downloaded sources (trimmed CONAPO/CONEVAL CSVs are committed)
@@ -96,7 +97,7 @@ src/
   atlasNames.ts    invented realm names + Spanish glosses for the Atlas skin
   map/             MapView (layers, lazy loading, crossfade, interaction), base style
   art/             SVG art: heraldry, landmark tokens, critters, trees, business icons, portrait
-  ui/              Ledger (HUD), ModeBar, Legend, Tooltip, ProvincePanel (ficha), Chronicle, cards, Welcome
+  ui/              Ledger (HUD), Search (colonias), ModeBar, Legend, Tooltip, ProvincePanel (ficha), Chronicle, cards, Welcome
 ```
 
 ## Adding or changing a map mode
@@ -147,7 +148,7 @@ Repo secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, optional `PC_SDK_
 ## Analytics
 
 Google Tag Manager `GTM-M9MFZ7RP` in `index.html` (skipped on localhost) → GA4. Custom dataLayer events:
-`cambio_modo`, `abrir_barrio`, `ver_ficha_punto` (tipo animal | negocio | pozo), `cambio_estilo` (see `src/analytics.ts`).
+`cambio_modo`, `abrir_barrio`, `ver_ficha_punto` (tipo animal | negocio | pozo), `cambio_estilo`, `buscar_colonia` (tipo colonia | pueblo | zona; the typed text is never sent) (see `src/analytics.ts`).
 
 ## Commits
 

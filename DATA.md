@@ -31,6 +31,7 @@ Spatial unit: INEGI **AGEB urbana** (key `CVEGEO`, 13 characters). Sonora = `26`
 | Water | REPDA — Registro Público de Derechos de Agua (CSV release: titles + location annexes, incl. irrigation districts), filtered to state 26 / municipio 30 | CONAGUA (unmodified releases preserved on Zenodo, record 24183265) | release 2025-06 (last registration 2025-06-11) | CONAGUA replaces its archive irregularly; the Zenodo record is checked weekly | Términos de Libre Uso MX (data); CC BY 4.0 (archive docs) | **Built**: 2,146 wells and intakes, 732 hm³/year authorised. Volumes are what titles allow, not metered |
 | Water | Monitor de Sequía de México, municipal table (`MunicipiosSequia.xlsx`) | SMN / CONAGUA | every 15 days since 2003 | Twice a month; checked weekly | Términos de Libre Uso MX | **Built**: current level, since when, and a 3-year sparkline |
 | Water | Censo 2020 `VPH_TINACO`, `VPH_CISTER`, `VPH_AGUADV` | INEGI | 2020 | Decennial | INEGI Términos de libre uso | **Built**: map colour = % of homes with a tinaco |
+| Colonias (search) | DENUE `NOMB_ASENT` + AGEB keys, plus Catálogo de asentamientos humanos (`wscatgeo/v2/asentamientos/26/030`) | INEGI | DENUE edition above; catalog 11/2025 | With DENUE; catalog re-read monthly | INEGI Términos de libre uso | **Built**: 696 colonias placed (515 named as in the INEGI catalog); 542 of 673 AGEBs carry names. Location is *derived* |
 | Water (not built) | Dam levels (Abelardo L. Rodríguez, El Novillo) — SINA | CONAGUA | — | — | — | **Blocked for scripts** (Incapsula bot wall). Free alternative: water area seen by Sentinel-2 |
 | Water (not built) | Aquifer availability (DOF 9 Nov 2023) | CONAGUA / DOF | 2023 | Every few years | — | Not built: would need a small hand-made table in `pipeline/manual/` |
 | Work (HUD) | Formal jobs, IMSS | IMSS | monthly | Monthly | Datos abiertos IMSS | Not built (the HUD shows the DENUE business count instead) |
@@ -139,6 +140,21 @@ information, and showed values up to 540 %. The pipeline now stops if any share 
 - **Colour** = % of homes with a tinaco (`VPH_TINACO / VIVPARH_CV`), six quantile classes. Cisterns are too rare
   (median 2 %) to colour the map; they are shown in the ficha.
 - La Gaceta writes Agua entries when the drought level changes or a new REPDA release appears (or the first time).
+
+## Colonias rules (search box)
+
+- INEGI's catalog of colonias has **names but no shapes**, so where a colonia is comes from DENUE: each
+  business row carries its colonia (`NOMB_ASENT`) and its AGEB (`CVE_LOC` + `CVE_AGEB`). The link is
+  *derived*; the search list and the ficha say "aproximado, según el directorio de negocios del INEGI".
+- A colonia needs ≥ 2 businesses. A colonia–AGEB pair is kept when the AGEB holds ≥ 15 % of that colonia's
+  businesses, or the colonia is ≥ 25 % of the AGEB's businesses (with ≥ 2 there); the colonia's top AGEB is
+  always kept. This drops mis-coded rows.
+- Names are written as in the INEGI catalog when the accent-free, upper-case name matches; otherwise the DENUE
+  name is title-cased. DENUE type "Localidad" is shown as "Poblado".
+- Colonias without registered businesses (new or purely residential subdivisions) cannot be found; the
+  search says so. Only names and AGEB keys are copied, never business names or addresses.
+- Output: `colonias.json` (`{n, t, a: [cvegeo…]}`, AGEBs with most businesses first) and per-AGEB `col`
+  (up to 3 names). The search box also finds Zonas and towns (from `realms.geojson`).
 
 ## Known gaps
 

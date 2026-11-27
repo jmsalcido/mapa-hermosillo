@@ -76,6 +76,13 @@ export function ProvincePanel({ data, ageb: a, realm: r, skin, onClose }: { data
           </figure>
         )}
 
+        {a.col?.length ? (
+          <p className="colonias">
+            <b>{a.col.length === 1 ? 'Colonia' : 'Colonias'}:</b> {a.col.join(', ')}
+            <small> (aproximado, según el directorio de negocios del INEGI)</small>
+          </p>
+        ) : null}
+
         <p className="description">{plain ? describe(a, data.stats) : `“${describe(a, data.stats)}”`}</p>
 
         {!a.in_census ? (
